@@ -5,7 +5,7 @@ export default defineConfig({
   build: {
     lib: {
       entry: resolve(import.meta.dirname, 'src/index.js'),
-      name: 'Timeline',
+      name: 'Canvas',
       formats: ['es', 'umd', 'iife'],
       fileName: (format) => {
         if (format === 'es') return 'index.js';
