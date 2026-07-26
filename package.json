@@ -17,9 +17,13 @@
     ".": {
       "import": "./dist/index.js",
       "require": "./dist/index.umd.cjs"
-    }
+    },
+    "./dist/index.iife.js": "./dist/index.iife.js",
+    "./package.json": "./package.json"
   },
   "main": "./dist/index.umd.cjs",
+  "unpkg": "./dist/index.iife.js",
+  "jsdelivr": "./dist/index.iife.js",
   "directories": {
     "test": "test"
   },

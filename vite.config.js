@@ -6,8 +6,12 @@ export default defineConfig({
     lib: {
       entry: resolve(import.meta.dirname, 'src/index.js'),
       name: 'Timeline',
-      fileName: 'index',
-      formats: ['es', 'umd'],
+      formats: ['es', 'umd', 'iife'],
+      fileName: (format) => {
+        if (format === 'es') return 'index.js';
+        if (format === 'umd') return 'index.umd.cjs';
+        return 'index.iife.js';
+      },
     },
     sourcemap: true,
   },
