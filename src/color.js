@@ -22,9 +22,10 @@ export function toHex(rgb) {
   return `#${channels.join('')}`;
 }
 
-export function lerpColor(from, to, t) {
-  const a = parseColor(from);
-  const b = parseColor(to);
+export function lerpRgb(from, to, t) {
+  return toHex([lerp(from[0], to[0], t), lerp(from[1], to[1], t), lerp(from[2], to[2], t)]);
+}
 
-  return toHex([lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)]);
+export function lerpColor(from, to, t) {
+  return lerpRgb(parseColor(from), parseColor(to), t);
 }
