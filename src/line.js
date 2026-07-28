@@ -5,7 +5,7 @@ export class Line extends Entity {
     ctx.save();
     ctx.globalAlpha = this.alpha;
     ctx.lineWidth = this.lineWidth;
-    ctx.strokeStyle = this.color;
+    ctx.strokeStyle = this.style;
 
     ctx.beginPath();
     ctx.moveTo(this.x0, this.y0);

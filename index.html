@@ -124,6 +124,8 @@
 
       const STAGGER = 600;
       const TWEEN = 900;
+      const BASE = { r: 30, g: 41, b: 59 };
+      const ACCENT = { r: 244, g: 63, b: 94 };
 
       class Enter extends Step {
         enter() {
@@ -134,7 +136,7 @@
               startAt: i * stagger,
               duration: TWEEN,
               ease: linear,
-              from: { alpha: 0, y0: entity.y0 + 24, color: '#1e293b' },
+              from: { alpha: 0, y0: entity.y0 + 24, color: BASE },
               to: { alpha: 1, y0: entity.y0, color: entity.tint },
             });
           });
@@ -151,22 +153,20 @@
               duration: TWEEN,
               ease: linear,
               from: { color: entity.tint, alpha: 1 },
-              to: { color: '#f43f5e', alpha: 0.25 },
+              to: { color: ACCENT, alpha: 0.25 },
             });
           });
         }
       }
 
-      function hex(h, s, l) {
+      function tint(h, s, l) {
         const f = (n) => {
           const k = (n + h / 30) % 12;
           const v = l - s * Math.min(l, 1 - l) * Math.max(-1, Math.min(k - 3, 9 - k, 1));
-          return Math.round(v * 255)
-            .toString(16)
-            .padStart(2, '0');
+          return Math.round(v * 255);
         };
 
-        return `#${f(0)}${f(8)}${f(4)}`;
+        return { r: f(0), g: f(8), b: f(4) };
       }
 
       function makeCards(count) {
@@ -189,7 +189,7 @@
             alpha: 0,
           });
 
-          card.tint = hex((i / count) * 320, 0.7, 0.55);
+          card.tint = tint((i / count) * 320, 0.7, 0.55);
           cards.push(card);
         }
 

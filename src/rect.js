@@ -12,7 +12,7 @@ export class Rect extends Entity {
   render(ctx) {
     ctx.save();
     ctx.globalAlpha = this.alpha;
-    ctx.fillStyle = this.color;
+    ctx.fillStyle = this.style;
     ctx.fillRect(this.x0, this.y0, this.width, this.height);
     ctx.restore();
   }

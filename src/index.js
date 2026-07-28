@@ -5,5 +5,4 @@ export { Renderer } from './renderer';
 export { Step } from './step';
 export { Timeline } from './timeline';
 export { Tweener } from './tweener';
-export { lerpColor, parseColor, toHex } from './color';
 export { clamp, easeInOutSine, lerp, linear } from './math';

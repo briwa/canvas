@@ -1,17 +1,4 @@
-import { lerpRgb, parseColor } from './color';
 import { easeInOutSine, lerp } from './math';
-
-const NUMBER = { interpolate: lerp };
-const COLOR = { interpolate: lerpRgb, prepare: parseColor };
-
-const INTERPOLATORS = {
-  x0: NUMBER,
-  x1: NUMBER,
-  y0: NUMBER,
-  y1: NUMBER,
-  color: COLOR,
-  alpha: NUMBER,
-};
 
 export class Tweener {
   constructor() {
@@ -22,20 +9,19 @@ export class Tweener {
     const props = [];
 
     for (const key of Object.keys(to)) {
-      const interpolator = INTERPOLATORS[key];
-      if (!interpolator) throw new Error(`Cannot tween property: ${key}`);
-
-      const start = from[key] ?? target[key];
       const end = to[key];
-      if (start === undefined || end === undefined) continue;
 
-      const { interpolate, prepare } = interpolator;
-      props.push({
-        key,
-        interpolate,
-        from: prepare ? prepare(start) : start,
-        to: prepare ? prepare(end) : end,
-      });
+      if (end !== null && typeof end === 'object') {
+        const into = target[key];
+
+        for (const leaf of Object.keys(end)) {
+          props.push({ into, key: leaf, from: from?.[key]?.[leaf] ?? into[leaf], to: end[leaf] });
+        }
+
+        continue;
+      }
+
+      props.push({ into: target, key, from: from?.[key] ?? target[key], to: end });
     }
 
     let slot = this.tweens.length;
@@ -44,7 +30,6 @@ export class Tweener {
     }
 
     this.tweens.splice(slot, 0, {
-      target,
       startAt,
       endAt: duration > 0 ? startAt + duration : startAt,
       duration,
@@ -66,7 +51,6 @@ export class Tweener {
       if (tween.startAt > elapsed) break;
 
       if (tween.settled) {
-        // Already holding its final values, and elapsed hasn't rewound past the end.
         if (elapsed >= tween.endAt) continue;
         tween.settled = false;
       }
@@ -76,7 +60,7 @@ export class Tweener {
       );
 
       for (const prop of tween.props) {
-        tween.target[prop.key] = prop.interpolate(prop.from, prop.to, progress);
+        prop.into[prop.key] = lerp(prop.from, prop.to, progress);
       }
 
       tween.settled = elapsed >= tween.endAt;
