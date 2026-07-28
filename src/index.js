@@ -1,4 +1,4 @@
-export { Bar } from './bar';
+export { Rect } from './rect';
 export { Entity } from './entity';
 export { Line } from './line';
 export { Renderer } from './renderer';

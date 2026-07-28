@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { Bar } from '../src/bar';
+import { Rect } from '../src/rect';
 import { linear } from '../src/math';
 import { Step } from '../src/step';
 import { Timeline } from '../src/timeline';
@@ -24,7 +24,7 @@ describe('Timeline', () => {
   let timeline;
 
   beforeEach(() => {
-    target = new Bar({ alpha: 0 });
+    target = new Rect({ alpha: 0 });
     first = new Fade({ duration: 100 });
     second = new Fade({ duration: 100 });
     timeline = new Timeline([target], [first, second]);

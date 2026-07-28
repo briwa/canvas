@@ -1,6 +1,6 @@
 import { Entity } from './entity';
 
-export class Bar extends Entity {
+export class Rect extends Entity {
   get width() {
     return this.x1 - this.x0;
   }
