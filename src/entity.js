@@ -1,3 +1,7 @@
+export function rgb(color) {
+  return `rgb(${Math.round(color.r)} ${Math.round(color.g)} ${Math.round(color.b)})`;
+}
+
 export class Entity {
   constructor({ shape, x0 = 0, x1 = 0, y0 = 0, y1 = 0, color, alpha = 1, lineWidth = 1 } = {}) {
     this.shape = shape;
@@ -6,28 +10,21 @@ export class Entity {
     this.y0 = y0;
     this.y1 = y1;
     this.color = { r: 0, g: 0, b: 0, ...color };
+    this.style = rgb(this.color);
     this.alpha = alpha;
     this.lineWidth = lineWidth;
-
-    this.cachedR = NaN;
-    this.cachedG = NaN;
-    this.cachedB = NaN;
-    this.cachedStyle = '';
   }
 
-  get style() {
-    const r = Math.round(this.color.r);
-    const g = Math.round(this.color.g);
-    const b = Math.round(this.color.b);
+  recolor({ r, g, b }) {
+    const color = this.color;
 
-    if (r !== this.cachedR || g !== this.cachedG || b !== this.cachedB) {
-      this.cachedR = r;
-      this.cachedG = g;
-      this.cachedB = b;
-      this.cachedStyle = `rgb(${r} ${g} ${b})`;
-    }
+    if (r !== undefined) color.r = r;
+    if (g !== undefined) color.g = g;
+    if (b !== undefined) color.b = b;
 
-    return this.cachedStyle;
+    this.style = rgb(color);
+
+    return this;
   }
 
   snapshot() {
@@ -51,9 +48,13 @@ export class Entity {
     this.y1 = state.y1;
     this.alpha = state.alpha;
     this.lineWidth = state.lineWidth;
-    this.color.r = state.r;
-    this.color.g = state.g;
-    this.color.b = state.b;
+
+    const color = this.color;
+    color.r = state.r;
+    color.g = state.g;
+    color.b = state.b;
+
+    this.style = rgb(color);
   }
 }
 

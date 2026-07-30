@@ -6,7 +6,7 @@ export {
   SequenceStep,
   TweenerStep,
 } from './steps';
-export { Entity, line, rect } from './entity';
+export { Entity, line, rect, rgb } from './entity';
 export { Renderer } from './renderer';
 export { Scene } from './scene';
 export { Timeline } from './timeline';
