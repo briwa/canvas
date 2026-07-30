@@ -1,40 +1,41 @@
-export class Timeline {
-  constructor(entities, steps) {
-    this.entities = entities;
-    this.steps = steps;
+import { RepeatStep, SequenceStep } from './steps';
 
-    this.reset();
+export class Timeline {
+  constructor({ entities = [], steps = [], repeat = false } = {}) {
+    this.entities = entities.flat(Infinity);
+
+    const sequence = new SequenceStep(steps, { entities: this.entities });
+
+    this.root = repeat
+      ? new RepeatStep(sequence, { times: repeat === true ? Infinity : repeat })
+      : sequence;
+
+    this.initial = this.entities.map((entity) => entity.snapshot());
+    this.started = false;
+  }
+
+  get span() {
+    return this.root.span;
+  }
+
+  get finished() {
+    return this.started && this.root.finished;
   }
 
   reset() {
-    this.index = -1;
-    this.step = null;
-    this.done = false;
+    this.started = false;
+
+    for (let i = 0; i < this.entities.length; i++) {
+      this.entities[i].restore(this.initial[i]);
+    }
   }
 
   update(time) {
-    if (this.done) return null;
-
-    if (!this.step) {
-      const next = this.steps[this.index + 1];
-      if (!next) {
-        this.done = true;
-        return null;
-      }
-
-      this.index++;
-      this.step = next;
-      this.step.begin(time, this.entities);
+    if (!this.started) {
+      this.started = true;
+      this.root.begin(time);
     }
 
-    const step = this.step;
-    step.update(time);
-
-    if (step.finished) {
-      step.destroy();
-      this.step = null;
-    }
-
-    return step;
+    return this.root.update(time);
   }
 }

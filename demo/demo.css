@@ -1,0 +1,85 @@
+:root {
+  color-scheme: light dark;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+body {
+  margin: 0;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+nav {
+  display: flex;
+  gap: 1rem;
+  align-items: baseline;
+  font-size: 0.8rem;
+}
+
+nav a {
+  color: inherit;
+}
+
+nav [aria-current='page'] {
+  text-decoration: none;
+  opacity: 0.5;
+}
+
+canvas {
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  max-width: 100%;
+}
+
+.controls {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.panels {
+  display: flex;
+  gap: 2.5rem;
+  flex-wrap: wrap;
+}
+
+dl {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 0.25rem 1rem;
+  margin: 0;
+  align-content: start;
+}
+
+dt {
+  opacity: 0.6;
+}
+
+dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+h1 {
+  font-size: 1rem;
+  margin: 0;
+}
+
+h2 {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.5;
+  margin: 0 0 0.5rem;
+}
+
+ul {
+  margin: 0;
+  padding-left: 1.2rem;
+  font-size: 0.85rem;
+  line-height: 1.9;
+}
