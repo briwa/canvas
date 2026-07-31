@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>input &mdash; canvas demos</title>
+    <link rel="stylesheet" href="./demo.css" />
+  </head>
+  <body>
+    <nav>
+      <a href="../index.html">canvas</a>
+      <a href="./scene.html">scene</a>
+      <a href="./input.html" aria-current="page">input</a>
+      <a href="./perf.html">perf</a>
+    </nav>
+
+    <div class="controls">
+      <button id="restart" type="button">restart</button>
+    </div>
+
+    <div class="panels">
+      <div class="panel">
+        <h2>MouseInput</h2>
+
+        <canvas id="mouse-stage" width="460" height="300"></canvas>
+
+        <ul>
+          <li>move the pointer &mdash; the lantern follows</li>
+          <li>hold to brighten, click to burst</li>
+        </ul>
+
+        <dl>
+          <dt>input.x, input.y</dt>
+          <dd id="pointer">0, 0</dd>
+          <dt>input.inside</dt>
+          <dd id="inside">false</dd>
+          <dt>input.down</dt>
+          <dd id="down">false</dd>
+          <dt>input.pressed</dt>
+          <dd id="presses">0</dd>
+        </dl>
+      </div>
+
+      <div class="panel">
+        <h2>KeyboardInput</h2>
+
+        <canvas id="keyboard-stage" width="460" height="300" tabindex="0"></canvas>
+
+        <ul>
+          <li>click the stage to focus it</li>
+          <li>&larr; &rarr; or A / D &mdash; walk</li>
+          <li>space, &uarr; or W &mdash; hop</li>
+        </ul>
+
+        <dl>
+          <dt>focused</dt>
+          <dd id="focused">false</dd>
+          <dt>input.keys</dt>
+          <dd id="keys">&mdash;</dd>
+          <dt>input.axis()</dt>
+          <dd id="axis">0</dd>
+          <dt>input.pressed(&hellip;)</dt>
+          <dd id="hops">0</dd>
+        </dl>
+      </div>
+    </div>
+
+    <script type="module" src="./input.js"></script>
+  </body>
+</html>

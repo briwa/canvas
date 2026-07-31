@@ -8,9 +8,9 @@ export class TweenerStep extends DurationStep {
     this.tweener = new Tweener();
   }
 
-  begin(time, entities) {
+  begin(time, entities, input) {
     this.tweener.clear();
-    super.begin(time, entities);
+    super.begin(time, entities, input);
   }
 
   tween(target, options) {

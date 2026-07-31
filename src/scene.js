@@ -1,12 +1,15 @@
 import { Renderer } from './renderer';
 
 export class Scene {
-  constructor({ canvas, renderer, timelines = [], loop = false } = {}) {
+  constructor({ canvas, renderer, timelines = [], input = null, loop = false } = {}) {
     this.renderer = renderer ?? (canvas ? new Renderer(canvas) : null);
     this.timelines = timelines;
+    this.input = input;
     this.loop = loop;
     this.startTime = null;
     this.time = 0;
+
+    if (this.input) this.input.attach(this.renderer?.canvas ?? null);
 
     this.build();
   }
@@ -58,7 +61,7 @@ export class Scene {
     const elapsed = time - this.startTime;
 
     for (const timeline of this.timelines) {
-      timeline.update(elapsed);
+      timeline.update(elapsed, this.input);
     }
 
     return this;
@@ -78,6 +81,7 @@ export class Scene {
     this.paint();
 
     if (this.loop && this.finished) this.reset();
+    if (this.input) this.input.flush();
 
     return this;
   }
@@ -89,6 +93,14 @@ export class Scene {
     for (const timeline of this.timelines) {
       timeline.reset();
     }
+
+    if (this.input) this.input.reset();
+
+    return this;
+  }
+
+  destroy() {
+    if (this.input) this.input.detach();
 
     return this;
   }

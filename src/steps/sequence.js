@@ -15,9 +15,9 @@ export class SequenceStep extends BaseStep {
     this.done = false;
   }
 
-  begin(time, entities) {
+  begin(time, entities, input) {
     this.reset();
-    super.begin(time, entities);
+    super.begin(time, entities, input);
   }
 
   get span() {
@@ -44,7 +44,7 @@ export class SequenceStep extends BaseStep {
 
         this.index++;
         this.step = next;
-        next.begin(time, this.entities);
+        next.begin(time, this.entities, this.input);
       }
 
       const step = this.step;

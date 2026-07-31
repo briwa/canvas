@@ -9,11 +9,11 @@ export class RepeatStep extends BaseStep {
     this.count = 0;
   }
 
-  begin(time, entities) {
-    super.begin(time, entities);
+  begin(time, entities, input) {
+    super.begin(time, entities, input);
 
     this.count = 0;
-    this.step.begin(time, this.entities);
+    this.step.begin(time, this.entities, this.input);
   }
 
   get span() {
@@ -41,7 +41,7 @@ export class RepeatStep extends BaseStep {
 
     if (this.finished) return;
 
-    this.step.begin(time, this.entities);
+    this.step.begin(time, this.entities, this.input);
     this.step.update(time);
   }
 

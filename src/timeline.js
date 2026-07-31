@@ -30,10 +30,10 @@ export class Timeline {
     }
   }
 
-  update(time) {
+  update(time, input) {
     if (!this.started) {
       this.started = true;
-      this.root.begin(time);
+      this.root.begin(time, this.entities, input);
     }
 
     return this.root.update(time);

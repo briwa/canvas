@@ -7,11 +7,11 @@ export class ParallelStep extends BaseStep {
     this.steps = steps;
   }
 
-  begin(time, entities) {
-    super.begin(time, entities);
+  begin(time, entities, input) {
+    super.begin(time, entities, input);
 
     for (const step of this.steps) {
-      step.begin(time, this.entities);
+      step.begin(time, this.entities, this.input);
     }
   }
 

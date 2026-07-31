@@ -7,6 +7,7 @@ export {
   TweenerStep,
 } from './steps';
 export { Entity, line, rect, rgb } from './entity';
+export { Input, KeyboardInput, MouseInput } from './inputs';
 export { Renderer } from './renderer';
 export { Scene } from './scene';
 export { Timeline } from './timeline';
