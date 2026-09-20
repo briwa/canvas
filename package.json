@@ -39,9 +39,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "preview": "vite preview",
-    "deploy-preview": "npm run build:demo && npx wrangler dev",
-    "deploy": "npm run build:demo && wrangler deploy",
-    "build:demo": "vite build --config vite.config.site.js"
+    "deploy-preview": "npm run demo:build && npx wrangler dev",
+    "deploy": "npm run demo:build && wrangler deploy",
+    "demo:build": "vite build --config vite.config.site.js"
   },
   "devDependencies": {
     "vite": "^8.1.5",
