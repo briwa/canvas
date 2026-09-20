@@ -1,0 +1,11 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "canvas",
+  "compatibility_date": "2026-06-01",
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [{ "pattern": "canvas.briwa.dev", "custom_domain": true }],
+  "assets": {
+    "directory": "./demo-dist"
+  }
+}

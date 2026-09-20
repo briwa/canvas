@@ -280,139 +280,151 @@ function scenery(canvas, palette) {
   });
 }
 
-const mouseCanvas = document.getElementById('mouse-stage');
-const keyboardCanvas = document.getElementById('keyboard-stage');
+export function start(section) {
+  const mouseCanvas = section.querySelector('[data-el="mouse-stage"]');
+  const keyboardCanvas = section.querySelector('[data-el="keyboard-stage"]');
+  const restart = section.querySelector('[data-el="restart"]');
 
-const home = { x: mouseCanvas.width / 2, y: HORIZON - 92 };
+  const home = { x: mouseCanvas.width / 2, y: HORIZON - 92 };
 
-const glow = rect({
-  x0: home.x - 38,
-  x1: home.x + 38,
-  y0: home.y - 38,
-  y1: home.y + 38,
-  alpha: 0.22,
-  color: { r: 255, g: 178, b: 92 },
-});
+  const glow = rect({
+    x0: home.x - 38,
+    x1: home.x + 38,
+    y0: home.y - 38,
+    y1: home.y + 38,
+    alpha: 0.22,
+    color: { r: 255, g: 178, b: 92 },
+  });
 
-const lantern = rect({
-  x0: home.x - 8,
-  x1: home.x + 8,
-  y0: home.y - 8,
-  y1: home.y + 8,
-  color: { r: 255, g: 232, b: 172 },
-});
+  const lantern = rect({
+    x0: home.x - 8,
+    x1: home.x + 8,
+    y0: home.y - 8,
+    y1: home.y + 8,
+    color: { r: 255, g: 232, b: 172 },
+  });
 
-const burst = rect({ alpha: 0, color: { r: 255, g: 214, b: 160 } });
+  const burst = rect({ alpha: 0, color: { r: 255, g: 214, b: 160 } });
 
-const mouse = new MouseInput();
+  const mouse = new MouseInput();
 
-const mouseScene = new Scene({
-  canvas: mouseCanvas,
-  input: mouse,
-  timelines: [
-    scenery(mouseCanvas, DUSK),
+  const mouseScene = new Scene({
+    canvas: mouseCanvas,
+    input: mouse,
+    timelines: [
+      scenery(mouseCanvas, DUSK),
 
-    new Timeline({
-      entities: [burst],
-      repeat: true,
-      steps: [
-        new WaitFor({ when: (input) => input.pressed }),
-        new Burst({ duration: 520, size: 140 }),
-      ],
-    }),
+      new Timeline({
+        entities: [burst],
+        repeat: true,
+        steps: [
+          new WaitFor({ when: (input) => input.pressed }),
+          new Burst({ duration: 520, size: 140 }),
+        ],
+      }),
 
-    new Timeline({
-      entities: [glow, lantern],
-      steps: [
-        new ParallelStep([
-          new Follow({ home, smoothing: 0.16 }),
-          new Glow({ entities: [glow], dim: 0.22, lit: 0.55 }),
-        ]),
-      ],
-    }),
-  ],
-});
+      new Timeline({
+        entities: [glow, lantern],
+        steps: [
+          new ParallelStep([
+            new Follow({ home, smoothing: 0.16 }),
+            new Glow({ entities: [glow], dim: 0.22, lit: 0.55 }),
+          ]),
+        ],
+      }),
+    ],
+  });
 
-const body = rect({
-  x0: 40,
-  x1: 66,
-  y0: HORIZON - 44,
-  y1: HORIZON,
-  color: { r: 232, g: 98, b: 76 },
-});
+  const body = rect({
+    x0: 40,
+    x1: 66,
+    y0: HORIZON - 44,
+    y1: HORIZON,
+    color: { r: 232, g: 98, b: 76 },
+  });
 
-const head = rect({
-  x0: 44,
-  x1: 62,
-  y0: HORIZON - 62,
-  y1: HORIZON - 44,
-  color: { r: 246, g: 208, b: 178 },
-});
+  const head = rect({
+    x0: 44,
+    x1: 62,
+    y0: HORIZON - 62,
+    y1: HORIZON - 44,
+    color: { r: 246, g: 208, b: 178 },
+  });
 
-const keyboard = new KeyboardInput({ prevent: [...JUMP, ...LEFT, ...RIGHT] });
+  const keyboard = new KeyboardInput({ prevent: [...JUMP, ...LEFT, ...RIGHT] });
 
-const keyboardScene = new Scene({
-  canvas: keyboardCanvas,
-  input: keyboard,
-  timelines: [
-    scenery(keyboardCanvas, DAY),
+  const keyboardScene = new Scene({
+    canvas: keyboardCanvas,
+    input: keyboard,
+    timelines: [
+      scenery(keyboardCanvas, DAY),
 
-    new Timeline({
-      entities: [body, head],
-      steps: [
-        new ParallelStep([
-          new Drive({ speed: 0.2, bounds: { x0: 8, x1: keyboardCanvas.width - 8 } }),
-          new RepeatStep(
-            new SequenceStep([
-              new WaitFor({ when: (input) => input.pressed(...JUMP) }),
-              new Hop({ duration: 520, lift: 78 }),
-            ]),
-          ),
-        ]),
-      ],
-    }),
-  ],
-});
+      new Timeline({
+        entities: [body, head],
+        steps: [
+          new ParallelStep([
+            new Drive({ speed: 0.2, bounds: { x0: 8, x1: keyboardCanvas.width - 8 } }),
+            new RepeatStep(
+              new SequenceStep([
+                new WaitFor({ when: (input) => input.pressed(...JUMP) }),
+                new Hop({ duration: 520, lift: 78 }),
+              ]),
+            ),
+          ]),
+        ],
+      }),
+    ],
+  });
 
-keyboardCanvas.focus();
+  keyboardCanvas.focus();
 
-const readout = {
-  pointer: document.getElementById('pointer'),
-  inside: document.getElementById('inside'),
-  down: document.getElementById('down'),
-  presses: document.getElementById('presses'),
-  focused: document.getElementById('focused'),
-  keys: document.getElementById('keys'),
-  axis: document.getElementById('axis'),
-  hops: document.getElementById('hops'),
-};
+  const readout = {
+    pointer: section.querySelector('[data-el="pointer"]'),
+    inside: section.querySelector('[data-el="inside"]'),
+    down: section.querySelector('[data-el="down"]'),
+    presses: section.querySelector('[data-el="presses"]'),
+    focused: section.querySelector('[data-el="focused"]'),
+    keys: section.querySelector('[data-el="keys"]'),
+    axis: section.querySelector('[data-el="axis"]'),
+    hops: section.querySelector('[data-el="hops"]'),
+  };
 
-let presses = 0;
-let hops = 0;
+  let presses = 0;
+  let hops = 0;
 
-document.getElementById('restart').addEventListener('click', () => {
-  mouseScene.reset();
-  keyboardScene.reset();
+  const onRestart = () => {
+    mouseScene.reset();
+    keyboardScene.reset();
 
-  presses = 0;
-  hops = 0;
-});
+    presses = 0;
+    hops = 0;
+  };
 
-requestAnimationFrame(function frame(time) {
-  if (mouse.pressed) presses++;
-  if (keyboard.pressed(...JUMP)) hops++;
+  restart.addEventListener('click', onRestart);
 
-  mouseScene.render(time);
-  keyboardScene.render(time);
+  let handle = requestAnimationFrame(function frame(time) {
+    if (mouse.pressed) presses++;
+    if (keyboard.pressed(...JUMP)) hops++;
 
-  readout.pointer.textContent = `${Math.round(mouse.x)}, ${Math.round(mouse.y)}`;
-  readout.inside.textContent = String(mouse.inside);
-  readout.down.textContent = String(mouse.down);
-  readout.presses.textContent = String(presses);
-  readout.focused.textContent = String(document.activeElement === keyboardCanvas);
-  readout.keys.textContent = keyboard.keys.size ? [...keyboard.keys].join(' ') : '—';
-  readout.axis.textContent = String(keyboard.axis(LEFT, RIGHT));
-  readout.hops.textContent = String(hops);
+    mouseScene.render(time);
+    keyboardScene.render(time);
 
-  requestAnimationFrame(frame);
-});
+    readout.pointer.textContent = `${Math.round(mouse.x)}, ${Math.round(mouse.y)}`;
+    readout.inside.textContent = String(mouse.inside);
+    readout.down.textContent = String(mouse.down);
+    readout.presses.textContent = String(presses);
+    readout.focused.textContent = String(document.activeElement === keyboardCanvas);
+    readout.keys.textContent = keyboard.keys.size ? [...keyboard.keys].join(' ') : '—';
+    readout.axis.textContent = String(keyboard.axis(LEFT, RIGHT));
+    readout.hops.textContent = String(hops);
+
+    handle = requestAnimationFrame(frame);
+  });
+
+  return () => {
+    cancelAnimationFrame(handle);
+    restart.removeEventListener('click', onRestart);
+    mouseScene.destroy();
+    keyboardScene.destroy();
+  };
+}

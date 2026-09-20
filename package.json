@@ -38,11 +38,15 @@
     "build": "vite build",
     "test": "vitest run",
     "test:watch": "vitest",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy-preview": "npm run build:demo && npx wrangler dev",
+    "deploy": "npm run build:demo && wrangler deploy",
+    "build:demo": "vite build --config vite.config.site.js"
   },
   "devDependencies": {
     "vite": "^8.1.5",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.10",
+    "wrangler": "^4.135.0"
   },
   "module": "./dist/index.js",
   "sideEffects": false

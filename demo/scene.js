@@ -9,7 +9,6 @@ import {
   rect,
 } from '../src/index.js';
 
-const canvas = document.getElementById('stage');
 const HORIZON = 330;
 const BANDS = 6;
 const SUN = 34;
@@ -99,18 +98,6 @@ class Walk extends TweenerStep {
   }
 }
 
-function band(i) {
-  const height = HORIZON / BANDS;
-
-  return rect({
-    x0: 0,
-    x1: canvas.width,
-    y0: i * height,
-    y1: (i + 1) * height + 1,
-    color: mix(DUSK.top, DUSK.low, i / (BANDS - 1)),
-  });
-}
-
 function tree(x, scale) {
   const trunkHeight = 74 * scale;
   const trunkWidth = 13 * scale;
@@ -136,116 +123,165 @@ function tree(x, scale) {
   return { trunk, canopy };
 }
 
-const bands = Array.from({ length: BANDS }, (_, i) => band(i));
+export function start(section) {
+  const canvas = section.querySelector('[data-el="stage"]');
+  const loopInput = section.querySelector('[data-el="loop"]');
+  const restart = section.querySelector('[data-el="restart"]');
+  const pause = section.querySelector('[data-el="pause"]');
 
-const sun = rect({
-  x0: 664,
-  x1: 664 + SUN,
-  y0: HORIZON + 26,
-  y1: HORIZON + 26 + SUN,
-  color: { r: 250, g: 226, b: 168 },
-});
+  function band(i) {
+    const height = HORIZON / BANDS;
 
-const ground = rect({
-  x0: 0,
-  x1: canvas.width,
-  y0: HORIZON,
-  y1: canvas.height,
-  color: { r: 34, g: 50, b: 42 },
-});
+    return rect({
+      x0: 0,
+      x1: canvas.width,
+      y0: i * height,
+      y1: (i + 1) * height + 1,
+      color: mix(DUSK.top, DUSK.low, i / (BANDS - 1)),
+    });
+  }
 
-const trees = [tree(120, 1), tree(310, 0.8), tree(620, 1.1), tree(848, 0.9)];
-const trunks = trees.map((t) => t.trunk);
-const canopies = trees.map((t) => t.canopy);
+  const bands = Array.from({ length: BANDS }, (_, i) => band(i));
 
-const body = rect({
-  x0: 60,
-  x1: 86,
-  y0: HORIZON - 46,
-  y1: HORIZON,
-  alpha: 0,
-  color: { r: 232, g: 98, b: 76 },
-});
-
-const head = rect({
-  x0: 64,
-  x1: 82,
-  y0: HORIZON - 66,
-  y1: HORIZON - 46,
-  alpha: 0,
-  color: { r: 246, g: 208, b: 178 },
-});
-
-function sky(duration, palette, sunTo) {
-  return new ParallelStep([
-    new Sky({ duration, entities: bands, ...palette }),
-    new To({ duration, entities: [sun], ease: sunTo.ease, to: () => sunTo.to }),
-  ]);
-}
-
-function sway(dx) {
-  return new To({
-    duration: 1300,
-    entities: canopies,
-    ease: easeInOutSine,
-    to: (canopy) => ({ x0: canopy.x0 + dx, x1: canopy.x1 + dx }),
+  const sun = rect({
+    x0: 664,
+    x1: 664 + SUN,
+    y0: HORIZON + 26,
+    y1: HORIZON + 26 + SUN,
+    color: { r: 250, g: 226, b: 168 },
   });
+
+  const ground = rect({
+    x0: 0,
+    x1: canvas.width,
+    y0: HORIZON,
+    y1: canvas.height,
+    color: { r: 34, g: 50, b: 42 },
+  });
+
+  const trees = [tree(120, 1), tree(310, 0.8), tree(620, 1.1), tree(848, 0.9)];
+  const trunks = trees.map((t) => t.trunk);
+  const canopies = trees.map((t) => t.canopy);
+
+  const body = rect({
+    x0: 60,
+    x1: 86,
+    y0: HORIZON - 46,
+    y1: HORIZON,
+    alpha: 0,
+    color: { r: 232, g: 98, b: 76 },
+  });
+
+  const head = rect({
+    x0: 64,
+    x1: 82,
+    y0: HORIZON - 66,
+    y1: HORIZON - 46,
+    alpha: 0,
+    color: { r: 246, g: 208, b: 178 },
+  });
+
+  function sky(duration, palette, sunTo) {
+    return new ParallelStep([
+      new Sky({ duration, entities: bands, ...palette }),
+      new To({ duration, entities: [sun], ease: sunTo.ease, to: () => sunTo.to }),
+    ]);
+  }
+
+  function sway(dx) {
+    return new To({
+      duration: 1300,
+      entities: canopies,
+      ease: easeInOutSine,
+      to: (canopy) => ({ x0: canopy.x0 + dx, x1: canopy.x1 + dx }),
+    });
+  }
+
+  const scene = new Scene({
+    canvas,
+    loop: loopInput.checked,
+    timelines: [
+      new Timeline({
+        entities: [bands, sun],
+        repeat: true,
+        steps: [
+          sky(2200, DAWN, { ease: linear, to: { y0: HORIZON - 4, y1: HORIZON - 4 + SUN } }),
+          sky(2800, DAY, { ease: easeInOutSine, to: { y0: 68, y1: 68 + SUN } }),
+          sky(2800, DUSK, {
+            ease: easeInOutSine,
+            to: { y0: HORIZON + 26, y1: HORIZON + 26 + SUN },
+          }),
+        ],
+      }),
+
+      new Timeline({
+        entities: [ground, trunks, canopies],
+        repeat: true,
+        steps: [sway(7), sway(-7)],
+      }),
+
+      new Timeline({
+        entities: [body, head],
+        steps: [
+          new To({ duration: 700, to: () => ({ alpha: 1 }) }),
+          new Walk({ duration: 2500, dx: 330, strides: 7 }),
+          new To({
+            duration: 260,
+            ease: easeInOutSine,
+            to: (p) => ({ y0: p.y0 - 42, y1: p.y1 - 42 }),
+          }),
+          new To({
+            duration: 260,
+            ease: easeInOutSine,
+            to: (p) => ({ y0: p.y0 + 42, y1: p.y1 + 42 }),
+          }),
+          new Walk({ duration: 2500, dx: 330, strides: 7 }),
+          new To({ duration: 700, to: () => ({ alpha: 0 }) }),
+        ],
+      }),
+    ],
+  });
+
+  let paused = false;
+  let last = 0;
+
+  function setPaused(value) {
+    paused = value;
+    pause.textContent = paused ? 'play' : 'pause';
+    pause.setAttribute('aria-pressed', String(paused));
+  }
+
+  const onLoop = () => {
+    scene.loop = loopInput.checked;
+  };
+
+  const onRestart = () => scene.reset();
+
+  const onPause = () => setPaused(!paused);
+
+  setPaused(false);
+
+  loopInput.addEventListener('change', onLoop);
+  restart.addEventListener('click', onRestart);
+  pause.addEventListener('click', onPause);
+
+  let handle = requestAnimationFrame(function frame(time) {
+    if (paused) {
+      if (last && scene.startTime !== null) scene.startTime += time - last;
+      scene.paint();
+    } else {
+      scene.render(time);
+    }
+
+    last = time;
+    handle = requestAnimationFrame(frame);
+  });
+
+  return () => {
+    cancelAnimationFrame(handle);
+    loopInput.removeEventListener('change', onLoop);
+    restart.removeEventListener('click', onRestart);
+    pause.removeEventListener('click', onPause);
+    scene.destroy();
+  };
 }
-
-const scene = new Scene({
-  canvas,
-  loop: true,
-  timelines: [
-    new Timeline({
-      entities: [bands, sun],
-      repeat: true,
-      steps: [
-        sky(2200, DAWN, { ease: linear, to: { y0: HORIZON - 4, y1: HORIZON - 4 + SUN } }),
-        sky(2800, DAY, { ease: easeInOutSine, to: { y0: 68, y1: 68 + SUN } }),
-        sky(2800, DUSK, {
-          ease: easeInOutSine,
-          to: { y0: HORIZON + 26, y1: HORIZON + 26 + SUN },
-        }),
-      ],
-    }),
-
-    new Timeline({
-      entities: [ground, trunks, canopies],
-      repeat: true,
-      steps: [sway(7), sway(-7)],
-    }),
-
-    new Timeline({
-      entities: [body, head],
-      steps: [
-        new To({ duration: 700, to: () => ({ alpha: 1 }) }),
-        new Walk({ duration: 2500, dx: 330, strides: 7 }),
-        new To({
-          duration: 260,
-          ease: easeInOutSine,
-          to: (p) => ({ y0: p.y0 - 42, y1: p.y1 - 42 }),
-        }),
-        new To({
-          duration: 260,
-          ease: easeInOutSine,
-          to: (p) => ({ y0: p.y0 + 42, y1: p.y1 + 42 }),
-        }),
-        new Walk({ duration: 2500, dx: 330, strides: 7 }),
-        new To({ duration: 700, to: () => ({ alpha: 0 }) }),
-      ],
-    }),
-  ],
-});
-
-const loopInput = document.getElementById('loop');
-
-loopInput.addEventListener('change', () => {
-  scene.loop = loopInput.checked;
-});
-
-document.getElementById('restart').addEventListener('click', () => scene.reset());
-
-requestAnimationFrame(function frame(time) {
-  scene.render(time);
-  requestAnimationFrame(frame);
-});

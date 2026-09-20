@@ -19,13 +19,38 @@ nav {
   font-size: 0.8rem;
 }
 
-nav a {
+nav button {
+  font: inherit;
+  font-size: 0.8rem;
   color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 nav [aria-current='page'] {
   text-decoration: none;
   opacity: 0.5;
+  cursor: default;
+}
+
+section[hidden] {
+  display: none;
+}
+
+section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.caption {
+  margin: 0;
+  font-size: 0.85rem;
+  opacity: 0.7;
 }
 
 canvas {
