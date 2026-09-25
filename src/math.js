@@ -10,6 +10,10 @@ export function easeInOutSine(progress) {
   return (1 - Math.cos(Math.PI * progress)) / 2;
 }
 
+export function easeInOutSineInverse(progress) {
+  return Math.acos(1 - (2 * progress)) / Math.PI;
+}
+
 export function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
 }
