@@ -1,6 +1,12 @@
-import { drawLine, drawRect } from './shapes';
+import { drawArc, drawCircle, drawCurve, drawLine, drawRect } from './shapes';
 
-const SHAPES = { line: drawLine, rect: drawRect };
+const SHAPES = {
+  line: drawLine,
+  rect: drawRect,
+  circle: drawCircle,
+  arc: drawArc,
+  curve: drawCurve,
+};
 
 export class Renderer {
   constructor(canvas, { shapes } = {}) {

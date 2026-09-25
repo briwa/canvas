@@ -1,6 +1,7 @@
 const DEMOS = {
   scene: () => import('./scene.js'),
   input: () => import('./input.js'),
+  shapes: () => import('./shapes.js'),
   perf: () => import('./perf.js'),
 };
 

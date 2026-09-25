@@ -5,6 +5,7 @@ import {
   TweenerStep,
   easeInOutSine,
   lerp,
+  circle,
   linear,
   rect,
 } from '../src/index.js';
@@ -112,7 +113,7 @@ function tree(x, scale) {
     color: { r: 54, g: 40, b: 34 },
   });
 
-  const canopy = rect({
+  const canopy = circle({
     x0: x - leafWidth / 2,
     x1: x + leafWidth / 2,
     y0: HORIZON - trunkHeight - leafHeight + 14 * scale,
@@ -143,7 +144,7 @@ export function start(section) {
 
   const bands = Array.from({ length: BANDS }, (_, i) => band(i));
 
-  const sun = rect({
+  const sun = circle({
     x0: 664,
     x1: 664 + SUN,
     y0: HORIZON + 26,
@@ -172,7 +173,7 @@ export function start(section) {
     color: { r: 232, g: 98, b: 76 },
   });
 
-  const head = rect({
+  const head = circle({
     x0: 64,
     x1: 82,
     y0: HORIZON - 66,

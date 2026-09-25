@@ -8,6 +8,8 @@ import {
   SequenceStep,
   Timeline,
   TweenerStep,
+  arc,
+  circle,
   clamp,
   easeInOutSine,
   lerp,
@@ -234,7 +236,7 @@ function tree(x, scale, canopyColor) {
     color: { r: 44, g: 34, b: 32 },
   });
 
-  const canopy = rect({
+  const canopy = circle({
     x0: x - leafWidth / 2,
     x1: x + leafWidth / 2,
     y0: HORIZON - trunkHeight - leafHeight + 12 * scale,
@@ -287,7 +289,7 @@ export function start(section) {
 
   const home = { x: mouseCanvas.width / 2, y: HORIZON - 92 };
 
-  const glow = rect({
+  const glow = circle({
     x0: home.x - 38,
     x1: home.x + 38,
     y0: home.y - 38,
@@ -296,7 +298,7 @@ export function start(section) {
     color: { r: 255, g: 178, b: 92 },
   });
 
-  const lantern = rect({
+  const lantern = circle({
     x0: home.x - 8,
     x1: home.x + 8,
     y0: home.y - 8,
@@ -304,7 +306,7 @@ export function start(section) {
     color: { r: 255, g: 232, b: 172 },
   });
 
-  const burst = rect({ alpha: 0, color: { r: 255, g: 214, b: 160 } });
+  const burst = arc({ alpha: 0, lineWidth: 3, color: { r: 255, g: 214, b: 160 } });
 
   const mouse = new MouseInput();
 
@@ -343,7 +345,7 @@ export function start(section) {
     color: { r: 232, g: 98, b: 76 },
   });
 
-  const head = rect({
+  const head = circle({
     x0: 44,
     x1: 62,
     y0: HORIZON - 62,
