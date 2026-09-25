@@ -41,7 +41,8 @@
     "preview": "vite preview",
     "deploy-preview": "npm run demo:build && npx wrangler dev",
     "deploy": "npm run demo:build && wrangler deploy",
-    "demo:build": "vite build --config vite.config.site.js"
+    "demo:build": "vite build --config vite.config.site.js",
+    "prepack": "npm run build"
   },
   "devDependencies": {
     "vite": "^8.1.5",
