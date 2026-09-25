@@ -13,4 +13,4 @@ export { Scene } from './scene';
 export { Timeline } from './timeline';
 export { Tweener } from './tweener';
 export { drawArc, drawCircle, drawCurve, drawLine, drawRect } from './shapes';
-export { clamp, easeInOutSine, lerp, linear } from './math';
+export { clamp, easeInOutSine, easeInOutSineInverse, lerp, linear } from './math';
