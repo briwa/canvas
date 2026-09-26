@@ -1,68 +1,41 @@
 import { Renderer } from './renderer';
 
 export class Scene {
-  constructor({ canvas, renderer, timelines = [], input = null, loop = false } = {}) {
+  constructor({ canvas, renderer, entities = [], step = null, inputs = [], loop = false } = {}) {
     this.renderer = renderer ?? (canvas ? new Renderer(canvas) : null);
-    this.timelines = timelines;
-    this.input = input;
+    this.entities = entities.flat(Infinity);
+    this.step = step;
+    this.inputs = [inputs].flat();
     this.loop = loop;
-    this.startTime = null;
-    this.time = 0;
+    this.paused = false;
+    this.started = false;
+    this.elapsed = 0;
+    this.time = null;
+    this.initial = this.entities.map((entity) => entity.snapshot());
+    this.resets = new Set();
 
-    if (this.input) this.input.attach(this.renderer?.canvas ?? null);
-
-    this.build();
-  }
-
-  build() {
-    this.entities = this.timelines.flatMap((timeline) => timeline.entities);
-    this.draws = this.renderer
-      ? this.entities.map((entity) => this.renderer.resolve(entity))
-      : this.entities.map(() => null);
-
-    return this;
-  }
-
-  get elapsed() {
-    return this.startTime === null ? 0 : this.time - this.startTime;
-  }
-
-  get span() {
-    let max = null;
-
-    for (const timeline of this.timelines) {
-      const span = timeline.span;
-
-      if (span === null) continue;
-      if (max === null || span > max) max = span;
-    }
-
-    return max;
+    for (const input of this.inputs) input.attach(this.renderer?.canvas ?? null);
   }
 
   get finished() {
-    let leads = false;
-
-    for (const timeline of this.timelines) {
-      if (timeline.span === null) continue;
-
-      leads = true;
-      if (!timeline.finished) return false;
-    }
-
-    return leads;
+    return this.started && !!this.step?.finished;
   }
 
   advance(time) {
-    if (this.startTime === null) this.startTime = time;
-
+    const dt = this.time === null ? 0 : time - this.time;
     this.time = time;
 
-    const elapsed = time - this.startTime;
+    if (this.paused) return this;
 
-    for (const timeline of this.timelines) {
-      timeline.update(elapsed, this.input);
+    if (this.started) {
+      this.elapsed += dt;
+    } else {
+      this.started = true;
+      this.elapsed = 0;
+      this.step?.begin(0);
     }
+
+    this.step?.update(this.elapsed);
 
     return this;
   }
@@ -71,7 +44,7 @@ export class Scene {
     if (!this.renderer) return this;
 
     this.renderer.clear();
-    this.renderer.render(this.entities, this.draws);
+    this.renderer.render(this.entities);
 
     return this;
   }
@@ -81,26 +54,43 @@ export class Scene {
     this.paint();
 
     if (this.loop && this.finished) this.reset();
-    if (this.input) this.input.flush();
 
+    for (const input of this.inputs) input.flush();
+
+    return this;
+  }
+
+  pause() {
+    this.paused = true;
+    return this;
+  }
+
+  play() {
+    this.paused = false;
     return this;
   }
 
   reset() {
-    this.startTime = null;
-    this.time = 0;
+    this.started = false;
+    this.elapsed = 0;
 
-    for (const timeline of this.timelines) {
-      timeline.reset();
-    }
+    this.entities.forEach((entity, i) => entity.restore(this.initial[i]));
 
-    if (this.input) this.input.reset();
+    for (const input of this.inputs) input.reset();
+    for (const fn of this.resets) fn(this);
 
     return this;
   }
 
+  onReset(fn) {
+    this.resets.add(fn);
+    return () => this.resets.delete(fn);
+  }
+
   destroy() {
-    if (this.input) this.input.detach();
+    for (const input of this.inputs) input.detach();
+
+    this.resets.clear();
 
     return this;
   }

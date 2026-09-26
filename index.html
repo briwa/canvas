@@ -3,147 +3,24 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>canvas demos</title>
-    <link rel="stylesheet" href="./demo/demo.css" />
+    <title>@briwa.dev/canvas</title>
   </head>
   <body>
-    <h1>canvas</h1>
+    <header>
+      <h1>@briwa.dev/canvas</h1>
 
-    <nav>
-      <button type="button" data-demo="scene">scene</button>
-      <button type="button" data-demo="input">input</button>
-      <button type="button" data-demo="shapes">shapes</button>
-      <button type="button" data-demo="perf">perf</button>
-    </nav>
+      <nav>
+        <a href="#getting-started" data-page="getting-started">getting started</a>
+        <a href="#steps" data-page="steps">steps</a>
+        <a href="#scene" data-page="scene">scene</a>
+        <a href="#input" data-page="input">input</a>
+      </nav>
+    </header>
 
-    <section data-demo="scene" hidden>
-      <p class="caption">layered timelines running together</p>
-
-      <canvas data-el="stage" width="960" height="480"></canvas>
-
-      <div class="controls">
-        <button data-el="pause" type="button" aria-pressed="false">pause</button>
-        <button data-el="restart" type="button">restart</button>
-        <label><input data-el="loop" type="checkbox" checked /> loop</label>
-      </div>
-    </section>
-
-    <section data-demo="input" hidden>
-      <p class="caption">steps driven by a mouse or a keyboard</p>
-
-      <div class="controls">
-        <button data-el="restart" type="button">restart</button>
-      </div>
-
-      <div class="panels">
-        <div class="panel">
-          <h2>MouseInput</h2>
-
-          <canvas data-el="mouse-stage" width="460" height="300"></canvas>
-
-          <ul>
-            <li>move the pointer &mdash; the lantern follows</li>
-            <li>hold to brighten, click to burst</li>
-          </ul>
-
-          <dl>
-            <dt>input.x, input.y</dt>
-            <dd data-el="pointer">0, 0</dd>
-            <dt>input.inside</dt>
-            <dd data-el="inside">false</dd>
-            <dt>input.down</dt>
-            <dd data-el="down">false</dd>
-            <dt>input.pressed</dt>
-            <dd data-el="presses">0</dd>
-          </dl>
-        </div>
-
-        <div class="panel">
-          <h2>KeyboardInput</h2>
-
-          <canvas data-el="keyboard-stage" width="460" height="300" tabindex="0"></canvas>
-
-          <ul>
-            <li>click the stage to focus it</li>
-            <li>&larr; &rarr; or A / D &mdash; walk</li>
-            <li>space, &uarr; or W &mdash; hop</li>
-          </ul>
-
-          <dl>
-            <dt>focused</dt>
-            <dd data-el="focused">false</dd>
-            <dt>input.keys</dt>
-            <dd data-el="keys">&mdash;</dd>
-            <dt>input.axis()</dt>
-            <dd data-el="axis">0</dd>
-            <dt>input.pressed(&hellip;)</dt>
-            <dd data-el="hops">0</dd>
-          </dl>
-        </div>
-      </div>
-    </section>
-
-    <section data-demo="shapes" hidden>
-      <canvas data-el="stage" width="960" height="320"></canvas>
-    </section>
-
-    <section data-demo="perf" hidden>
-      <p class="caption">one timeline over thousands of tweens</p>
-
-      <canvas data-el="stage" width="960" height="480"></canvas>
-
-      <div class="controls">
-        <button data-el="restart" type="button">restart</button>
-        <label>
-          cards
-          <select data-el="count">
-            <option value="60" selected>60</option>
-            <option value="600">600</option>
-            <option value="2000">2000</option>
-            <option value="6000">6000</option>
-            <option value="20000">20000</option>
-          </select>
-        </label>
-        <label><input data-el="loop" type="checkbox" checked /> loop</label>
-        <button data-el="reset-stats" type="button">reset stats</button>
-      </div>
-
-      <div class="panels">
-        <div>
-          <h2>Sequence</h2>
-          <dl>
-            <dt>root.index</dt>
-            <dd data-el="index">-1</dd>
-            <dt>root.step</dt>
-            <dd data-el="step">null</dd>
-            <dt>root.done</dt>
-            <dd data-el="done">false</dd>
-            <dt>step.progress</dt>
-            <dd data-el="progress">0</dd>
-          </dl>
-        </div>
-
-        <div>
-          <h2>Benchmark</h2>
-          <dl>
-            <dt>fps</dt>
-            <dd data-el="fps">&mdash;</dd>
-            <dt>frame (avg / p95 / max)</dt>
-            <dd data-el="frame">&mdash;</dd>
-            <dt>update (avg / p95 / max)</dt>
-            <dd data-el="update">&mdash;</dd>
-            <dt>render (avg / p95 / max)</dt>
-            <dd data-el="render">&mdash;</dd>
-            <dt>tweens</dt>
-            <dd data-el="tweens">&mdash;</dd>
-            <dt>settled (skipped)</dt>
-            <dd data-el="settled">&mdash;</dd>
-            <dt>frames sampled</dt>
-            <dd data-el="frames">0</dd>
-          </dl>
-        </div>
-      </div>
-    </section>
+    <section data-page="getting-started" hidden></section>
+    <section data-page="steps" hidden></section>
+    <section data-page="scene" hidden></section>
+    <section data-page="input" hidden></section>
 
     <script type="module" src="./demo/main.js"></script>
   </body>

@@ -1,20 +1,5 @@
 import { easeInOutSine, lerp } from './math';
 
-function restyle(entry) {
-  const color = entry.color;
-
-  const r = Math.round(color.r);
-  const g = Math.round(color.g);
-  const b = Math.round(color.b);
-
-  if (r !== entry.r || g !== entry.g || b !== entry.b) {
-    entry.r = r;
-    entry.g = g;
-    entry.b = b;
-    entry.target.style = `rgb(${r} ${g} ${b})`;
-  }
-}
-
 class Tween {
   constructor(target, { startAt, duration, from, to, ease = easeInOutSine }) {
     this.startAt = startAt;
@@ -23,7 +8,6 @@ class Tween {
     this.ease = ease;
     this.settled = false;
     this.props = [];
-    this.colors = [];
 
     for (const key of Object.keys(to)) {
       const end = to[key];
@@ -32,15 +16,8 @@ class Tween {
         const into = target[key];
 
         for (const leaf of Object.keys(end)) {
-          this.props.push({
-            into,
-            key: leaf,
-            from: from?.[key]?.[leaf] ?? into[leaf],
-            to: end[leaf],
-          });
+          this.props.push({ into, key: leaf, from: from?.[key]?.[leaf] ?? into[leaf], to: end[leaf] });
         }
-
-        if (key === 'color') this.colors.push({ target, color: into, r: NaN, g: NaN, b: NaN });
 
         continue;
       }
@@ -61,10 +38,6 @@ class Tween {
 
     for (const prop of this.props) {
       prop.into[prop.key] = lerp(prop.from, prop.to, progress);
-    }
-
-    for (const entry of this.colors) {
-      restyle(entry);
     }
 
     this.settled = elapsed >= this.endAt;

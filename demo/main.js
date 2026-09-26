@@ -1,54 +1,44 @@
-const DEMOS = {
-  scene: () => import('./scene.js'),
-  input: () => import('./input.js'),
-  shapes: () => import('./shapes.js'),
-  perf: () => import('./perf.js'),
-};
+import '@briwa.dev/sandbox/styles';
+import './demo.css';
 
-const tabs = [...document.querySelectorAll('nav [data-demo]')];
-const sections = new Map(
-  [...document.querySelectorAll('section[data-demo]')].map((el) => [el.dataset.demo, el]),
-);
+import { mountFigures } from '@briwa.dev/sandbox/client';
 
-let current = null;
-let stop = null;
-let token = 0;
+import bundle from 'virtual:canvas-bundle';
+import { createRenderer } from './render.js';
+import gettingStarted from './getting-started.md?raw';
+import steps from './steps.md?raw';
+import scene from './scene.md?raw';
+import input from './input.md?raw';
+
+const PAGES = { 'getting-started': gettingStarted, steps, scene, input };
+const render = createRenderer({ bundle });
+
+mountFigures();
+
+const links = [...document.querySelectorAll('nav [data-page]')];
+const rendered = new Set();
 
 function pick(hash) {
   const name = hash.slice(1);
 
-  return Object.hasOwn(DEMOS, name) ? name : 'scene';
+  return Object.hasOwn(PAGES, name) ? name : 'getting-started';
 }
 
 async function show(name) {
-  if (name === current) return;
-
-  stop?.();
-  stop = null;
-  current = name;
-
-  const id = ++token;
-
-  for (const tab of tabs) {
-    if (tab.dataset.demo === name) tab.setAttribute('aria-current', 'page');
-    else tab.removeAttribute('aria-current');
+  for (const link of links) {
+    if (link.dataset.page === name) link.setAttribute('aria-current', 'page');
+    else link.removeAttribute('aria-current');
   }
 
-  for (const [key, section] of sections) {
-    section.hidden = key !== name;
+  for (const section of document.querySelectorAll('section[data-page]')) {
+    section.hidden = section.dataset.page !== name;
   }
 
-  const module = await DEMOS[name]();
-  if (id !== token) return;
+  if (rendered.has(name)) return;
+  rendered.add(name);
 
-  stop = module.start(sections.get(name)) ?? null;
-}
-
-for (const tab of tabs) {
-  tab.addEventListener('click', () => {
-    location.hash = tab.dataset.demo;
-    show(tab.dataset.demo);
-  });
+  const section = document.querySelector(`section[data-page="${name}"]`);
+  section.innerHTML = await render(PAGES[name]);
 }
 
 window.addEventListener('hashchange', () => show(pick(location.hash)));

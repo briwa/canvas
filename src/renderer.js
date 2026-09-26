@@ -1,17 +1,6 @@
-import { drawArc, drawCircle, drawCurve, drawLine, drawRect } from './shapes';
-
-const SHAPES = {
-  line: drawLine,
-  rect: drawRect,
-  circle: drawCircle,
-  arc: drawArc,
-  curve: drawCurve,
-};
-
 export class Renderer {
-  constructor(canvas, { shapes } = {}) {
+  constructor(canvas) {
     this.canvas = canvas;
-    this.shapes = shapes ? { ...SHAPES, ...shapes } : SHAPES;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) throw new Error('Could not acquire a 2d rendering context');
@@ -19,18 +8,11 @@ export class Renderer {
     this.ctx = ctx;
   }
 
-  resolve(entity) {
-    const draw = this.shapes[entity.shape];
-    if (!draw) throw new Error(`Nothing knows how to draw a "${entity.shape}"`);
-
-    return draw;
-  }
-
   clear() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
   }
 
-  render(entities, draws) {
+  render(entities) {
     const ctx = this.ctx;
 
     let alpha = -1;
@@ -38,9 +20,7 @@ export class Renderer {
 
     ctx.save();
 
-    for (let i = 0; i < entities.length; i++) {
-      const entity = entities[i];
-
+    for (const entity of entities) {
       if (entity.alpha !== alpha) {
         alpha = entity.alpha;
         ctx.globalAlpha = alpha;
@@ -54,7 +34,7 @@ export class Renderer {
         ctx.strokeStyle = style;
       }
 
-      draws[i](ctx, entity);
+      entity.draw(ctx, entity);
     }
 
     ctx.restore();
