@@ -6,7 +6,7 @@ https://cdn.jsdelivr.net/npm/@briwa.dev/canvas/dist/index.iife.js
 
 ## tween
 
-`tween(targets?, to, { duration, ease, from, stagger })`
+`tween([targets]?, to, { duration, ease, from, stagger })`
 
 ```sandbox=js viz 640x220 control=auto code
 const { Scene, layer, circle, tween, sequence, repeat } = Canvas;
@@ -96,7 +96,7 @@ loop((t) => scene.render(t));
 
 ## move, sequence, parallel, repeat, wait
 
-`move(targets?, { x, y }, options)` is a `tween` by an offset.
+`move([targets]?, { x, y }, options)` is a `tween` by an offset.
 
 A `parallel` is done when every part that can end has ended.
 
@@ -106,7 +106,7 @@ const { Scene, layer, rect, tween, move, wait, sequence, parallel, repeat } = Ca
 const walker = rect({ x0: 180, y0: 50, x1: 220, y1: 90, color: { r: 224, g: 122, b: 95 } });
 const blinker = rect({ x0: 480, y0: 90, x1: 520, y1: 130, color: { r: 118, g: 176, b: 222 } });
 
-const go = (x, y) => move(walker, { x, y }, { duration: 500 });
+const go = (x, y) => move([walker], { x, y }, { duration: 500 });
 
 const scene = new Scene({
   canvas,
@@ -115,7 +115,7 @@ const scene = new Scene({
       [walker, blinker],
       parallel(
         repeat(sequence(go(200, 0), go(0, 80), wait(300), go(-200, 0), go(0, -80), wait(300))),
-        repeat(sequence(tween(blinker, { alpha: 0.2 }, { duration: 600 }), tween(blinker, { alpha: 1 }, { duration: 600 }))),
+        repeat(sequence(tween([blinker], { alpha: 0.2 }, { duration: 600 }), tween([blinker], { alpha: 1 }, { duration: 600 }))),
       ),
     ),
   ],
@@ -154,9 +154,9 @@ const planet = circle({ x0: 0, y0: 0, x1: 16, y1: 16, color: { r: 118, g: 176, b
 const scene = new Scene({
   canvas,
   layers: [
-    layer(sun),
+    layer([sun]),
     layer(
-      planet,
+      [planet],
       forever((s) => {
         const angle = s.elapsed / 1000;
         const x = 320 + Math.cos(angle) * 160;
@@ -173,7 +173,7 @@ loop((t) => scene.render(t));
 
 ## Your own steps
 
-`step(targets?, { duration, start, update })`
+`step([targets]?, { duration, start, update })`
 
 | on `s` | what it is |
 | --- | --- |
@@ -210,7 +210,7 @@ const box = rect({ x0: 280, y0: 60, x1: 360, y1: 140, color: { r: 224, g: 122, b
 
 const scene = new Scene({
   canvas,
-  layers: [layer(box, repeat(sequence(wait(800), shake({ duration: 600, strength: 14 }))))],
+  layers: [layer([box], repeat(sequence(wait(800), shake({ duration: 600, strength: 14 }))))],
 });
 
 loop((t) => scene.render(t));
@@ -276,8 +276,8 @@ function orbit(x, y) {
   return layer([
     path,
     sun,
-    layer(planet, circling(sun, { rx: 95, ry: 45, period: 6000 })),
-    layer(moon, circling(planet, { rx: 20, period: 1400 })),
+    layer([planet], circling(sun, { rx: 95, ry: 45, period: 6000 })),
+    layer([moon], circling(planet, { rx: 20, period: 1400 })),
   ]);
 }
 
@@ -341,7 +341,7 @@ const cell = width / 3;
 const scene = new Scene({
   canvas,
   layers: [
-    layer(backdrop),
+    layer([backdrop]),
     equalizer(cell * 0.5, height / 2),
     orbit(cell * 1.5, height / 2),
     scribble(cell * 2 + 24, cell * 3 - 24, height / 2),

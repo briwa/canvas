@@ -19,7 +19,7 @@ const scene = new Scene({
   canvas,
   layers: [
     layer(
-      ball,
+      [ball],
       sequence(
         tween({ x0: width - 80, x1: width - 40 }, { duration: 1200, ease: easeInOutSine }),
         tween({ x0: 40, x1: 80 }, { duration: 1200, ease: easeInOutSine }),
@@ -72,9 +72,9 @@ const scene = new Scene({
       circle({ ...box(1), color }),
       line({ ...box(2), y0: 140, y1: 60, lineWidth: 4, color }),
     ]),
-    layer(arc({ ...box(3), lineWidth: 4, endAngle: 0, color }), draw({ endAngle: Math.PI * 2 }, { endAngle: 0 })),
-    layer(line({ ...box(4), y0: 140, y1: 60, lineWidth: 4, t1: 0, ease: easeInOutSine, color }), draw({ t1: 1 }, { t1: 0 })),
-    layer(triangle),
+    layer([arc({ ...box(3), lineWidth: 4, endAngle: 0, color })], draw({ endAngle: Math.PI * 2 }, { endAngle: 0 })),
+    layer([line({ ...box(4), y0: 140, y1: 60, lineWidth: 4, t1: 0, ease: easeInOutSine, color })], draw({ t1: 1 }, { t1: 0 })),
+    layer([triangle]),
   ],
 });
 
@@ -106,9 +106,9 @@ const hand = line({ x0: center.x, y0: center.y, x1: center.x, y1: center.y, line
 const scene = new Scene({
   canvas,
   layers: [
-    layer(ticks),
+    layer([ticks]),
     layer(
-      hand,
+      [hand],
       forever((s) => {
         const turn = (s.elapsed / 6000) % 1;
         const end = polar(center, -turn * 360, 64);

@@ -17,10 +17,6 @@ import {
   wait,
 } from '../src/step';
 
-function fade(targets, duration) {
-  return tween(targets, { alpha: 1 }, { duration, ease: linear, from: { alpha: 0 } });
-}
-
 function drift(targets, dx, duration) {
   return tween(targets, (e) => ({ x0: e.x0 + dx, x1: e.x1 + dx }), { duration, ease: linear });
 }
@@ -155,7 +151,7 @@ describe('steps', () => {
 
     it('tweens colours', () => {
       const e = rect({ color: { r: 0, g: 0, b: 0 } });
-      const s = tween(e, { color: { r: 200, b: 100 } }, { duration: 100, ease: linear });
+      const s = tween([e], { color: { r: 200, b: 100 } }, { duration: 100, ease: linear });
 
       s.begin(0);
       s.update(50);
@@ -180,7 +176,7 @@ describe('steps', () => {
 
     it('leaves the other axis alone for whatever else is moving it', () => {
       const e = rect({ x0: 0, x1: 10, y0: 0, y1: 10 });
-      const s = move(e, { y: 40 }, { duration: 100, ease: linear });
+      const s = move([e], { y: 40 }, { duration: 100, ease: linear });
 
       s.begin(0);
       e.x0 = 70;
@@ -195,7 +191,7 @@ describe('steps', () => {
       const [a, b, c, d] = [rect(), rect(), rect(), rect()];
 
       expect(layer([a, layer([b, [c]]), d]).targets).toEqual([a, b, c, d]);
-      expect(layer(a).targets).toEqual([a]);
+      expect(layer([a]).targets).toEqual([a]);
     });
 
     it('gives its targets to every step inside it', () => {
@@ -214,7 +210,7 @@ describe('steps', () => {
     it('lets a step name its own targets instead', () => {
       const a = rect();
       const b = rect();
-      const l = layer(a, parallel(tween({ alpha: 0.5 }, { duration: 100, ease: linear }), tween(b, { alpha: 0 }, { duration: 100, ease: linear })));
+      const l = layer([a], parallel(tween({ alpha: 0.5 }, { duration: 100, ease: linear }), tween([b], { alpha: 0 }, { duration: 100, ease: linear })));
 
       l.begin(0);
       l.update(100);
@@ -226,7 +222,7 @@ describe('steps', () => {
     it('runs nested layers alongside its own step, each on its own targets', () => {
       const body = rect({ x0: 0, x1: 10, y0: 0, y1: 10 });
       const head = rect({ x0: 0, x1: 10, y0: 0, y1: 10 });
-      const l = layer([layer(body), layer(head, fadeIn(100))], move({ x: 50 }, { duration: 100, ease: linear }));
+      const l = layer([layer([body]), layer([head], fadeIn(100))], move({ x: 50 }, { duration: 100, ease: linear }));
 
       l.begin(0);
       l.update(50);
@@ -237,7 +233,7 @@ describe('steps', () => {
 
     it('keeps its targets through repeats and later steps', () => {
       const e = rect({ x0: 0, x1: 10 });
-      const l = layer(e, repeat(sequence(wait(50), move({ x: 10 }, { duration: 50, ease: linear })), 3));
+      const l = layer([e], repeat(sequence(wait(50), move({ x: 10 }, { duration: 50, ease: linear })), 3));
 
       l.begin(0);
       for (let time = 0; time <= 300; time += 25) l.update(time);
@@ -258,7 +254,7 @@ describe('steps', () => {
 
     it('never holds up finishing when it has no step', () => {
       const e = rect();
-      const s = parallel(layer(rect()), layer(e, fadeIn(100)), layer([rect(), layer(rect())]));
+      const s = parallel(layer([rect()]), layer([e], fadeIn(100)), layer([rect(), layer([rect()])]));
 
       s.begin(0);
       s.update(50);
@@ -274,7 +270,7 @@ describe('steps', () => {
       const e = rect();
       const seen = [];
 
-      const a = step(e, { start: (s) => seen.push(s.targets) });
+      const a = step([e], { start: (s) => seen.push(s.targets) });
       const b = forever([e], (s) => seen.push(s.targets));
       a.begin(0);
       b.begin(0);
@@ -292,6 +288,16 @@ describe('steps', () => {
       expect(() => custom.update(10)).toThrow(/no targets/);
     });
 
+    it('must be an array', () => {
+      const e = rect();
+
+      expect(() => tween(e, { alpha: 0 })).toThrow(/must be an array/);
+      expect(() => move(e, { x: 5 })).toThrow(/must be an array/);
+      expect(() => step(e, {})).toThrow(/must be an array/);
+      expect(() => forever(e, () => {})).toThrow(/must be an array/);
+      expect(() => layer(e)).toThrow(/array of children/);
+    });
+
     it('are not needed for steps that do not use them', () => {
       const s = sequence(wait(10), until(() => true), forever(() => {}));
 
@@ -305,7 +311,7 @@ describe('steps', () => {
   describe('sequence', () => {
     it('plays its steps one after another', () => {
       const e = rect({ x0: 0 });
-      const s = sequence(drift(e, 100, 100), wait(100), drift(e, -100, 100));
+      const s = sequence(drift([e], 100, 100), wait(100), drift([e], -100, 100));
 
       s.begin(0);
 
@@ -326,7 +332,7 @@ describe('steps', () => {
 
     it('carries the overshoot into the next step instead of losing it', () => {
       const e = rect({ x0: 0 });
-      const s = sequence(wait(100), drift(e, 100, 100));
+      const s = sequence(wait(100), drift([e], 100, 100));
 
       s.begin(0);
       s.update(0);
@@ -337,7 +343,7 @@ describe('steps', () => {
 
     it('runs through several short steps in one frame', () => {
       const e = rect({ x0: 0 });
-      const s = sequence(wait(10), wait(10), drift(e, 100, 100));
+      const s = sequence(wait(10), wait(10), drift([e], 100, 100));
 
       s.begin(0);
       s.update(70);
@@ -388,7 +394,7 @@ describe('steps', () => {
   describe('repeat', () => {
     it('stops after the given count', () => {
       const e = rect({ x0: 0 });
-      const s = repeat(drift(e, 10, 100), 3);
+      const s = repeat(drift([e], 10, 100), 3);
 
       s.begin(0);
       for (let time = 0; time <= 400; time += 50) s.update(time);
@@ -415,8 +421,8 @@ describe('steps', () => {
       const a = rect({ x0: 0 });
       const b = rect({ x0: 0 });
       const s = parallel(
-        repeat(sequence(drift(a, 10, 300), drift(a, -10, 300))),
-        repeat(sequence(drift(b, 10, 200), drift(b, 0, 100), drift(b, -10, 300))),
+        repeat(sequence(drift([a], 10, 300), drift([a], -10, 300))),
+        repeat(sequence(drift([b], 10, 200), drift([b], 0, 100), drift([b], -10, 300))),
       );
 
       s.begin(0);
@@ -448,7 +454,7 @@ describe('Scene', () => {
       layers: [
         layer(bands, repeat(sequence(fadeIn(600), fadeIn(600)))),
         layer(canopies, repeat(sequence(shift(8, 300), shift(-8, 300)))),
-        layer(hero, sequence(fadeIn(200), shift(100, 600))),
+        layer([hero], sequence(fadeIn(200), shift(100, 600))),
       ],
     });
 
@@ -467,7 +473,7 @@ describe('Scene', () => {
     const canvas = { width: 10, height: 10, getContext: () => ctx };
     const custom = new Entity({ draw, color: { r: 1, g: 2, b: 3 }, alpha: 0.5 });
 
-    new Scene({ canvas, layers: [layer(custom)] }).render(0);
+    new Scene({ canvas, layers: [layer([custom])] }).render(0);
 
     expect(ctx.clearRect).toHaveBeenCalledWith(0, 0, 10, 10);
     expect(draw).toHaveBeenCalledWith(ctx, custom);
@@ -506,7 +512,7 @@ describe('Scene', () => {
   });
 
   it('never finishes when no layer has a step', () => {
-    const scene = new Scene({ layers: [layer(rect()), layer([rect()])] });
+    const scene = new Scene({ layers: [layer([rect()]), layer([rect()])] });
 
     scene.render(0);
 
@@ -580,7 +586,7 @@ describe('Scene', () => {
   });
 
   it('never says it finished when nothing ends', () => {
-    const scene = new Scene({ layers: [layer(rect(), forever(() => {}))] });
+    const scene = new Scene({ layers: [layer([rect()], forever(() => {}))] });
     const finish = vi.fn();
     scene.onFinish(finish);
 

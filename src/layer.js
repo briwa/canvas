@@ -1,8 +1,12 @@
 import { parallel } from './step';
 
 export class Layer {
-  constructor(targets = [], step = null) {
-    const items = [targets].flat(Infinity);
+  constructor(children = [], step = null) {
+    if (!Array.isArray(children)) {
+      throw new TypeError('layer() takes an array of children, like layer([shape], step).');
+    }
+
+    const items = children.flat(Infinity);
 
     this.step = step;
     this.layers = items.filter((item) => item instanceof Layer);
@@ -35,6 +39,6 @@ export class Layer {
   }
 }
 
-export function layer(targets, step) {
-  return new Layer(targets, step);
+export function layer(children, step) {
+  return new Layer(children, step);
 }

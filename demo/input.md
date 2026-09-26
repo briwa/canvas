@@ -96,8 +96,8 @@ const scene = new Scene({
   layers: [
     layer([bands, ground, trunks]),
     layer(canopies, repeat(sequence(sway(5), sway(-5)))),
-    layer(ring, repeat(sequence(until(() => mouse.pressed), burst))),
-    layer([layer(halo, glow), lantern], follow(0.16)),
+    layer([ring], repeat(sequence(until(() => mouse.pressed), burst))),
+    layer([layer([halo], glow), lantern], follow(0.16)),
   ],
 });
 

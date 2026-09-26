@@ -2,7 +2,9 @@ import { Entity } from './entity';
 import { Tweener } from './tweener';
 
 function isTargets(value) {
-  return Array.isArray(value) || value instanceof Entity;
+  if (value instanceof Entity) throw new TypeError('Targets must be an array, like [shape].');
+
+  return Array.isArray(value);
 }
 
 function list(targets) {

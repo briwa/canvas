@@ -21,7 +21,7 @@ https://cdn.jsdelivr.net/npm/@briwa.dev/canvas/dist/index.iife.js
 | `onFinish(fn)` | call `fn` each time the scene finishes; returns a function that stops listening |
 | `destroy()` | stop listening to inputs |
 
-`layer(targets, step?)` draws its targets in order, which can be shapes or other layers. Its step works on every target inside it, unless a step names its own. A layer without a step just draws.
+`layer(children, step?)` draws its children in order, which can be shapes or other layers. Its step works on every shape inside it, unless a step names its own targets. A layer without a step just draws.
 
 ## Finishing and looping
 
@@ -122,7 +122,7 @@ const scene = new Scene({
   layers: [
     layer(bands, repeat(sequence(skyTo(DAWN, 2200), skyTo(DAY, 2800), skyTo(DUSK, 2800)))),
     layer(
-      sun,
+      [sun],
       repeat(
         sequence(
           sunTo(HORIZON - 4, 2200, linear),
@@ -180,7 +180,7 @@ const scene = new Scene({
   loop: true,
   layers: [
     layer(
-      ball,
+      [ball],
       sequence(
         tween({ x0: width - 60, x1: width - 20 }, { duration: 1500, ease: easeInOutSine }),
         tween({ alpha: 0 }, { duration: 400 }),
