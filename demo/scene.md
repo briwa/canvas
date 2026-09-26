@@ -17,6 +17,7 @@ https://cdn.jsdelivr.net/npm/@briwa.dev/canvas/dist/index.iife.js
 | `pause()` / `play()` | stop and resume the clock; `scene.paused` says which |
 | `reset()` | put every target back how it started and start the clock again |
 | `onReset(fn)` | call `fn` on every reset; returns a function that stops listening |
+| `onFinish(fn)` | call `fn` each time the scene finishes; returns a function that stops listening |
 | `destroy()` | stop listening to inputs |
 
 `layer(targets, step?)` draws its targets in order, which can be shapes or other layers. Its step works on every target inside it, unless a step names its own. A layer without a step just draws.

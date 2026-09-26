@@ -552,6 +552,75 @@ describe('Scene', () => {
     expect(second).toHaveBeenCalledTimes(1);
   });
 
+  it('says when it finishes, once per run', () => {
+    const { scene } = build();
+    const finish = vi.fn();
+    scene.onFinish(finish);
+
+    play(scene, 0, 700);
+    expect(finish).not.toHaveBeenCalled();
+
+    scene.render(800);
+    expect(finish).toHaveBeenCalledTimes(1);
+    expect(finish).toHaveBeenCalledWith(scene);
+
+    play(scene, 900, 2000);
+    expect(finish).toHaveBeenCalledTimes(1);
+
+    scene.reset();
+    play(scene, 3000, 3800);
+    expect(finish).toHaveBeenCalledTimes(2);
+  });
+
+  it('can be reset by hand once it finishes', () => {
+    const { scene, hero } = build();
+    const reset = vi.fn();
+    scene.onReset(reset);
+    scene.onFinish(() => scene.reset());
+
+    play(scene, 0, 800);
+
+    expect(reset).toHaveBeenCalledTimes(1);
+    expect(hero).toMatchObject({ x0: 10, alpha: 0 });
+
+    scene.render(900);
+    expect(scene.elapsed).toBe(0);
+    expect(scene.finished).toBe(false);
+  });
+
+  it('says it finished before it loops', () => {
+    const { scene } = build({ loop: true });
+    const calls = [];
+    scene.onFinish(() => calls.push('finish'));
+    scene.onReset(() => calls.push('reset'));
+
+    play(scene, 0, 800);
+    play(scene, 900, 1700);
+
+    expect(calls).toEqual(['finish', 'reset', 'finish', 'reset']);
+  });
+
+  it('never says it finished when nothing ends', () => {
+    const scene = new Scene({ layers: [layer(rect(), forever(() => {}))] });
+    const finish = vi.fn();
+    scene.onFinish(finish);
+
+    play(scene, 0, 5000);
+
+    expect(finish).not.toHaveBeenCalled();
+  });
+
+  it('stops telling a listener that has gone', () => {
+    const { scene } = build();
+    const finish = vi.fn();
+    const off = scene.onFinish(finish);
+
+    off();
+    play(scene, 0, 800);
+
+    expect(finish).not.toHaveBeenCalled();
+  });
+
   it('loops itself once it finishes', () => {
     const { scene, hero } = build({ loop: true });
     const reset = vi.fn();
