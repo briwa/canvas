@@ -36,6 +36,42 @@ exports[`every page > getting-started.md > Getting started #0 runs and shows its
 ]
 `;
 
+exports[`every page > getting-started.md > Helpers #2 runs and shows its code 1`] = `
+[
+  "0: aac8195a",
+  "100: c0c17815",
+  "200: 57cf964b",
+  "300: d8801076",
+  "400: 3f036d09",
+  "500: 96519df4",
+  "600: 1b48e715",
+  "700: a0397aa1",
+  "800: 2e23d0d5",
+  "900: d6a9aa9b",
+  "1000: a3184bc5",
+  "1100: 6fe3e09e",
+  "1200: ad3127a6",
+  "1300: e1a8ebcd",
+  "1400: 497a900b",
+  "1500: 7f3618ed",
+  "1600: c5200e55",
+  "1700: acfc84e9",
+  "1800: 263472bf",
+  "1900: d31923ce",
+  "2000: ca965ab9",
+  "2100: 093d3ae4",
+  "2200: f063b760",
+  "2300: 6d3a1de9",
+  "2400: 2e5ad034",
+  "2500: da3d7ae2",
+  "2600: c88062e7",
+  "2700: 3339b6d3",
+  "2800: 3557d8d0",
+  "2900: e0b7c114",
+  "3000: b57254e9",
+]
+`;
+
 exports[`every page > getting-started.md > Shapes #1 runs and shows its code 1`] = `
 [
   "0: b46aa5c2",
@@ -324,7 +360,7 @@ exports[`every page > steps.md > forever #4 runs and shows its code 1`] = `
 ]
 `;
 
-exports[`every page > steps.md > sequence, parallel, repeat, wait #2 runs and shows its code 1`] = `
+exports[`every page > steps.md > move, sequence, parallel, repeat, wait #2 runs and shows its code 1`] = `
 [
   "0: b8acb28a",
   "100: e2d8c8ae",

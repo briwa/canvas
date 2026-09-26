@@ -7,9 +7,9 @@ function end(step, time) {
 }
 
 export class Step {
-  constructor({ duration = null, enter, update } = {}) {
+  constructor({ duration = null, start, update } = {}) {
     this.duration = duration;
-    this.onEnter = enter;
+    this.onStart = start;
     this.onUpdate = update;
     this.tweener = new Tweener();
     this.startTime = 0;
@@ -42,7 +42,7 @@ export class Step {
     this.dt = 0;
     this.done = false;
     this.tweener.clear();
-    this.onEnter?.(this);
+    this.onStart?.(this);
   }
 
   update(time) {
@@ -249,7 +249,7 @@ export function tween(targets, to, { duration = 0, stagger = 0, ease, from } = {
 
   return new Step({
     duration: duration + stagger,
-    enter(s) {
+    start(s) {
       const gap = list.length > 1 ? stagger / (list.length - 1) : 0;
 
       list.forEach((target, i) => {
@@ -263,6 +263,17 @@ export function tween(targets, to, { duration = 0, stagger = 0, ease, from } = {
       });
     },
   });
+}
+
+export function move(targets, { x, y }, options) {
+  return tween(
+    targets,
+    (target) => ({
+      ...(x !== undefined && { x0: target.x0 + x, x1: target.x1 + x }),
+      ...(y !== undefined && { y0: target.y0 + y, y1: target.y1 + y }),
+    }),
+    options,
+  );
 }
 
 export function sequence(...steps) {

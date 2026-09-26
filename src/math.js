@@ -2,6 +2,19 @@ export function lerp(from, to, t) {
   return from + (to - from) * t;
 }
 
+export function mix(from, to, t) {
+  return { r: lerp(from.r, to.r, t), g: lerp(from.g, to.g, t), b: lerp(from.b, to.b, t) };
+}
+
+export function polar(origin, angle, length) {
+  const rad = (angle / 180) * Math.PI;
+
+  return {
+    x: origin.x - Math.sin(rad) * length,
+    y: origin.y - Math.cos(rad) * length,
+  };
+}
+
 export function linear(progress) {
   return progress;
 }

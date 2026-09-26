@@ -25,7 +25,7 @@ https://cdn.jsdelivr.net/npm/@briwa.dev/canvas/dist/index.iife.js
 Parts that run forever don't count towards finishing. With `loop: true`, the scene starts over once the rest is done.
 
 ```sandbox=js viz 960x480 control=auto code
-const { Scene, circle, rect, step, tween, sequence, parallel, repeat, easeInOutSine, linear, lerp } = Canvas;
+const { Scene, circle, rect, step, tween, move, sequence, parallel, repeat, easeInOutSine, linear, mix } = Canvas;
 
 const HORIZON = 330;
 const BANDS = 6;
@@ -35,15 +35,13 @@ const DUSK = { top: { r: 38, g: 32, b: 62 }, low: { r: 216, g: 118, b: 82 } };
 const DAWN = { top: { r: 46, g: 56, b: 96 }, low: { r: 196, g: 122, b: 132 } };
 const DAY = { top: { r: 78, g: 140, b: 206 }, low: { r: 190, g: 218, b: 238 } };
 
-const mix = (a, b, t) => ({ r: lerp(a.r, b.r, t), g: lerp(a.g, b.g, t), b: lerp(a.b, b.b, t) });
-
 function walk(parts, { duration, dx, strides, lift = 7 }) {
   const beats = strides * 2;
   const span = duration / beats;
 
   return step({
     duration,
-    enter(s) {
+    start(s) {
       for (const part of parts) {
         s.tween(part, { startAt: 0, duration, ease: linear, to: { x0: part.x0 + dx, x1: part.x1 + dx } });
 
@@ -112,11 +110,9 @@ const sky = (duration, { top, low }, ease, to) =>
     tween(sun, to, { duration, ease }),
   );
 
-const sway = (dx) =>
-  tween(canopies, (c) => ({ x0: c.x0 + dx, x1: c.x1 + dx }), { duration: 1300, ease: easeInOutSine });
+const sway = (x) => move(canopies, { x }, { duration: 1300, ease: easeInOutSine });
 
-const hop = (dy) =>
-  tween(hero, (p) => ({ y0: p.y0 + dy, y1: p.y1 + dy }), { duration: 260, ease: easeInOutSine });
+const hop = (y) => move(hero, { y }, { duration: 260, ease: easeInOutSine });
 
 const scene = new Scene({
   canvas,

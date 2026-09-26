@@ -16,11 +16,10 @@ Pass inputs to the scene with `inputs: [...]`, and call `scene.destroy()` to rem
 | `pressed`, `released` | true only on the frame it happened |
 
 ```sandbox=js viz 460x300 control=none code
-const { Scene, MouseInput, arc, circle, rect, step, forever, tween, until, sequence, parallel, repeat, easeInOutSine, lerp } = Canvas;
+const { Scene, MouseInput, arc, circle, rect, step, forever, tween, move, until, sequence, parallel, repeat, easeInOutSine, lerp, mix } = Canvas;
 
 const HORIZON = 210;
 const home = { x: width / 2, y: HORIZON - 92 };
-const mix = (a, b, t) => ({ r: lerp(a.r, b.r, t), g: lerp(a.g, b.g, t), b: lerp(a.b, b.b, t) });
 
 const bands = Array.from({ length: 5 }, (_, i) =>
   rect({
@@ -51,7 +50,7 @@ function follow(entities, smoothing) {
 
   return step({
     duration: Infinity,
-    enter() {
+    start() {
       const x = entities.reduce((sum, e) => sum + (e.x0 + e.x1) / 2 / entities.length, 0);
       const y = entities.reduce((sum, e) => sum + (e.y0 + e.y1) / 2 / entities.length, 0);
 
@@ -89,8 +88,7 @@ const burst = tween(
   },
 );
 
-const sway = (dx) =>
-  tween(canopies, (c) => ({ x0: c.x0 + dx, x1: c.x1 + dx }), { duration: 1700, ease: easeInOutSine });
+const sway = (x) => move(canopies, { x }, { duration: 1700, ease: easeInOutSine });
 
 const scene = new Scene({
   canvas,
@@ -120,13 +118,12 @@ onCleanup(() => scene.destroy());
 Click the figure first. Walk with ← → or A / D, hop with space, ↑ or W.
 
 ```sandbox=js viz 460x300 control=none code
-const { Scene, KeyboardInput, circle, rect, forever, tween, until, sequence, parallel, repeat, clamp, easeInOutSine, lerp } = Canvas;
+const { Scene, KeyboardInput, circle, rect, forever, move, until, sequence, parallel, repeat, clamp, easeInOutSine, mix } = Canvas;
 
 const HORIZON = 210;
 const JUMP = ['space', 'arrowup', 'w'];
 const LEFT = ['arrowleft', 'a'];
 const RIGHT = ['arrowright', 'd'];
-const mix = (a, b, t) => ({ r: lerp(a.r, b.r, t), g: lerp(a.g, b.g, t), b: lerp(a.b, b.b, t) });
 
 canvas.tabIndex = 0;
 
@@ -167,11 +164,9 @@ const drive = forever((s) => {
   }
 });
 
-const lift = (dy) =>
-  tween(hero, (p) => ({ y0: p.y0 + dy, y1: p.y1 + dy }), { duration: 260, ease: easeInOutSine });
+const lift = (y) => move(hero, { y }, { duration: 260, ease: easeInOutSine });
 
-const sway = (dx) =>
-  tween(canopies, (c) => ({ x0: c.x0 + dx, x1: c.x1 + dx }), { duration: 1700, ease: easeInOutSine });
+const sway = (x) => move(canopies, { x }, { duration: 1700, ease: easeInOutSine });
 
 const scene = new Scene({
   canvas,

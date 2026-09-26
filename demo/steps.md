@@ -91,26 +91,25 @@ const scene = new Scene({
 loop((t) => scene.render(t));
 ```
 
-## sequence, parallel, repeat, wait
+## move, sequence, parallel, repeat, wait
+
+`move(targets, { x, y }, options)` is a `tween` by an offset.
 
 A `parallel` is done when every part that can end has ended.
 
 ```sandbox=js viz 640x220 control=auto code
-const { Scene, rect, tween, wait, sequence, parallel, repeat } = Canvas;
+const { Scene, rect, tween, move, wait, sequence, parallel, repeat } = Canvas;
 
 const walker = rect({ x0: 180, y0: 50, x1: 220, y1: 90, color: { r: 224, g: 122, b: 95 } });
 const blinker = rect({ x0: 480, y0: 90, x1: 520, y1: 130, color: { r: 118, g: 176, b: 222 } });
 
-const move = (dx, dy) =>
-  tween(walker, (e) => ({ x0: e.x0 + dx, x1: e.x1 + dx, y0: e.y0 + dy, y1: e.y1 + dy }), {
-    duration: 500,
-  });
+const go = (x, y) => move(walker, { x, y }, { duration: 500 });
 
 const scene = new Scene({
   canvas,
   entities: [walker, blinker],
   step: parallel(
-    repeat(sequence(move(200, 0), move(0, 80), wait(300), move(-200, 0), move(0, -80), wait(300))),
+    repeat(sequence(go(200, 0), go(0, 80), wait(300), go(-200, 0), go(0, -80), wait(300))),
     repeat(sequence(tween(blinker, { alpha: 0.2 }, { duration: 600 }), tween(blinker, { alpha: 1 }, { duration: 600 }))),
   ),
 });
@@ -163,7 +162,7 @@ loop((t) => scene.render(t));
 
 ## Your own steps
 
-`step({ duration, enter, update })`
+`step({ duration, start, update })`
 
 | on `s` | what it is |
 | --- | --- |
@@ -182,7 +181,7 @@ function shake(target, { duration, strength }) {
 
   return step({
     duration,
-    enter() {
+    start() {
       ({ x0, x1 } = target);
     },
     update(s) {
@@ -275,7 +274,7 @@ const pick = (items) => items[Math.floor(Math.random() * items.length)];
 function scribbling(strokes, { duration, from, to, y: middle }) {
   return step({
     duration,
-    enter(s) {
+    start(s) {
       const drawn = [];
       let x = from;
       let y = middle;

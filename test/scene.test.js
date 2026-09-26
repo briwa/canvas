@@ -2,10 +2,11 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { Entity, circle, line, rect } from '../src/entity';
 import { Input } from '../src/inputs';
-import { linear } from '../src/math';
+import { linear, mix, polar } from '../src/math';
 import { Scene } from '../src/scene';
 import {
   forever,
+  move,
   parallel,
   repeat,
   sequence,
@@ -56,17 +57,17 @@ describe('steps', () => {
   });
 
   describe('step', () => {
-    it('enters once and updates with its own clock', () => {
-      const enter = vi.fn();
+    it('starts once and updates with its own clock', () => {
+      const start = vi.fn();
       const seen = [];
-      const s = step({ duration: 500, enter, update: (s) => seen.push([s.elapsed, s.dt]) });
+      const s = step({ duration: 500, start, update: (s) => seen.push([s.elapsed, s.dt]) });
 
       s.begin(1000);
       s.update(1000);
       s.update(1200);
       s.update(1500);
 
-      expect(enter).toHaveBeenCalledTimes(1);
+      expect(start).toHaveBeenCalledTimes(1);
       expect(seen).toEqual([
         [0, 0],
         [200, 200],
@@ -152,6 +153,31 @@ describe('steps', () => {
 
       expect(e.color).toEqual({ r: 100, g: 0, b: 50 });
       expect(e.style).toBe('rgb(100 0 50)');
+    });
+  });
+
+  describe('move', () => {
+    it('shifts each target by an offset from wherever it is', () => {
+      const a = rect({ x0: 0, x1: 10, y0: 0, y1: 10 });
+      const b = rect({ x0: 50, x1: 60, y0: 20, y1: 30 });
+      const s = move([a, b], { x: 100, y: -20 }, { duration: 100, ease: linear });
+
+      s.begin(0);
+      s.update(50);
+
+      expect(a).toMatchObject({ x0: 50, x1: 60, y0: -10, y1: 0 });
+      expect(b).toMatchObject({ x0: 100, x1: 110, y0: 10, y1: 20 });
+    });
+
+    it('leaves the other axis alone for whatever else is moving it', () => {
+      const e = rect({ x0: 0, x1: 10, y0: 0, y1: 10 });
+      const s = move(e, { y: 40 }, { duration: 100, ease: linear });
+
+      s.begin(0);
+      e.x0 = 70;
+      s.update(100);
+
+      expect(e).toMatchObject({ x0: 70, y0: 40, y1: 50 });
     });
   });
 
@@ -540,5 +566,25 @@ describe('Entity', () => {
     expect(rect()).not.toHaveProperty('t0');
     expect(circle()).not.toHaveProperty('startAngle');
     expect(line()).toMatchObject({ t0: 0, t1: 1, segments: 32, ease: linear });
+  });
+});
+
+describe('math', () => {
+  it('mixes two colours', () => {
+    expect(mix({ r: 0, g: 100, b: 200 }, { r: 100, g: 100, b: 0 }, 0.25)).toEqual({ r: 25, g: 100, b: 150 });
+  });
+
+  it('finds the point at an angle in degrees, 0 being up and turning anticlockwise', () => {
+    const origin = { x: 100, y: 100 };
+    const at = (angle) => {
+      const { x, y } = polar(origin, angle, 10);
+      return [Math.round(x * 1e6) / 1e6 + 0, Math.round(y * 1e6) / 1e6 + 0];
+    };
+
+    expect(at(0)).toEqual([100, 90]);
+    expect(at(90)).toEqual([90, 100]);
+    expect(at(180)).toEqual([100, 110]);
+    expect(at(-90)).toEqual([110, 100]);
+    expect(at(360)).toEqual([100, 90]);
   });
 });

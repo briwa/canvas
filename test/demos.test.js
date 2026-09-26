@@ -96,6 +96,22 @@ describe('getting started', () => {
   });
 });
 
+describe('helpers', () => {
+  it('turns the hand anticlockwise from 12, blending its colour over a turn', () => {
+    const fig = open('getting-started.md', 'Helpers');
+    const trace = play(fig, { to: 6000 });
+    const hand = (t) => at(trace, t).at(-1);
+
+    expect(at(trace, 0)).toHaveLength(1 + 12 + 1);
+    expect(at(trace, 0)[1]).toBe('stroke M320,30 L320,20 | rgb(118 176 222) a=1 w=2');
+    expect(at(trace, 0)[4]).toBe('stroke M250,100 L240,100 | rgb(118 176 222) a=1 w=2');
+    expect(hand(0)).toBe('stroke M320,100 L320,36 | rgb(224 122 95) a=1 w=4');
+    expect(hand(1500)).toBe('stroke M320,100 L384,100 | rgb(171 149 159) a=1 w=4');
+    expect(hand(3000)).toBe('stroke M320,100 L320,164 | rgb(118 176 222) a=1 w=4');
+    expect(hand(6000)).toBe(hand(0));
+  });
+});
+
 describe('steps', () => {
   it('staggers the dots up and back down, changing colour', () => {
     const fig = open('steps.md', 'tween');
@@ -174,7 +190,7 @@ describe('steps', () => {
   });
 
   it('walks one square round in a sequence while the other blinks in parallel', () => {
-    const fig = open('steps.md', 'sequence, parallel, repeat, wait');
+    const fig = open('steps.md', 'move, sequence, parallel, repeat, wait');
     const trace = play(fig, { to: 2800 });
     const walker = (t) => parse(find(at(trace, t), CORAL)[0]);
     const blinker = (t) => parse(find(at(trace, t), BLUE)[0]);
