@@ -437,13 +437,14 @@ describe('steps', () => {
 });
 
 describe('Scene', () => {
-  function build({ loop = false } = {}) {
+  function build({ loop = false, start = 0 } = {}) {
     const bands = [rect({ alpha: 0 }), rect({ alpha: 0 })];
     const canopies = [0, 60].map((x) => rect({ x0: x, x1: x + 40 }));
     const hero = rect({ x0: 10, x1: 36, alpha: 0 });
 
     const scene = new Scene({
       loop,
+      start,
       layers: [
         layer(bands, repeat(sequence(fadeIn(600), fadeIn(600)))),
         layer(canopies, repeat(sequence(shift(8, 300), shift(-8, 300)))),
@@ -648,6 +649,52 @@ describe('Scene', () => {
     scene.render(1100);
 
     expect(hero.x0).toBe(10);
+  });
+
+  it('can start part-way through, as if it had played up to there', () => {
+    const plain = build();
+    play(plain.scene, 0, 400);
+
+    const late = build({ start: 400 });
+    late.scene.render(0);
+
+    expect(late.scene.elapsed).toBe(400);
+    expect(late.hero).toMatchObject({ alpha: plain.hero.alpha, x0: plain.hero.x0 });
+    expect(late.canopies[0].x0).toBeCloseTo(plain.canopies[0].x0);
+    expect(late.bands[0].alpha).toBeCloseTo(plain.bands[0].alpha);
+  });
+
+  it('loops back to 0, but resets back to where it started', () => {
+    const { scene, hero } = build({ loop: true, start: 700 });
+
+    scene.render(0);
+    expect(scene.elapsed).toBe(700);
+    expect(hero.x0).toBeCloseTo(10 + (100 * 5) / 6);
+
+    scene.render(100);
+    expect(hero).toMatchObject({ x0: 10, alpha: 0 });
+
+    scene.render(200);
+    expect(scene.elapsed).toBe(0);
+    scene.render(300);
+    expect(scene.elapsed).toBe(100);
+
+    scene.reset();
+    scene.render(400);
+    expect(scene.elapsed).toBe(700);
+    expect(hero.x0).toBeCloseTo(10 + (100 * 5) / 6);
+  });
+
+  it('can jump anywhere', () => {
+    const { scene, hero } = build();
+
+    play(scene, 0, 300);
+    scene.seek(500);
+    scene.render(400);
+
+    expect(scene.elapsed).toBe(500);
+    expect(hero).toMatchObject({ alpha: 1 });
+    expect(hero.x0).toBeCloseTo(10 + (100 * 300) / 600);
   });
 
   it('holds still while paused and carries on without jumping', () => {

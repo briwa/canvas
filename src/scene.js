@@ -1,14 +1,18 @@
 import { Renderer } from './renderer';
 import { parallel } from './step';
 
+const FRAME = 16;
+
 export class Scene {
-  constructor({ canvas, renderer, layers = [], inputs = [], loop = false } = {}) {
+  constructor({ canvas, renderer, layers = [], inputs = [], loop = false, start = 0 } = {}) {
     this.renderer = renderer ?? (canvas ? new Renderer(canvas) : null);
     this.layers = [layers].flat(Infinity);
     this.targets = this.layers.flatMap((layer) => layer.targets);
     this.step = this.layers.length ? parallel(this.layers) : null;
     this.inputs = [inputs].flat();
     this.loop = loop;
+    this.start = start;
+    this.origin = start;
     this.paused = false;
     this.started = false;
     this.done = false;
@@ -35,8 +39,10 @@ export class Scene {
       this.elapsed += dt;
     } else {
       this.started = true;
-      this.elapsed = 0;
+      this.elapsed = this.origin;
       this.step?.begin(0);
+
+      for (let t = 0; t < this.origin; t += FRAME) this.step?.update(t);
     }
 
     this.step?.update(this.elapsed);
@@ -62,7 +68,7 @@ export class Scene {
       for (const fn of this.finishes) fn(this);
     }
 
-    if (this.loop && this.finished) this.reset();
+    if (this.loop && this.finished) this.seek(0);
 
     for (const input of this.inputs) input.flush();
 
@@ -80,6 +86,11 @@ export class Scene {
   }
 
   reset() {
+    return this.seek(this.start);
+  }
+
+  seek(time) {
+    this.origin = time;
     this.started = false;
     this.done = false;
     this.elapsed = 0;

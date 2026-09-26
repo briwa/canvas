@@ -10,12 +10,14 @@ https://cdn.jsdelivr.net/npm/@briwa.dev/canvas/dist/index.iife.js
 | `layers` | drawn back to front, all running at once |
 | `inputs` | a `MouseInput` or `KeyboardInput` to listen with (see [input](#input)) |
 | `loop` | start over once every layer that can end has ended |
+| `start` | ms into the timeline to begin at; looping goes back to 0, `reset()` back to `start` |
 
 | method | what it does |
 | --- | --- |
 | `render(time)` | move to `time` (in ms) and draw |
 | `pause()` / `play()` | stop and resume the clock; `scene.paused` says which |
 | `reset()` | put every target back how it started and start the clock again |
+| `seek(time)` | jump to `time` ms into the timeline on the next frame |
 | `onReset(fn)` | call `fn` on every reset; returns a function that stops listening |
 | `onFinish(fn)` | call `fn` each time the scene finishes; returns a function that stops listening |
 | `destroy()` | stop listening to inputs |
