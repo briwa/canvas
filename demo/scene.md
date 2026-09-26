@@ -10,7 +10,7 @@ https://cdn.jsdelivr.net/npm/@briwa.dev/canvas/dist/index.iife.js
 | `layers` | drawn back to front, all running at once |
 | `inputs` | a `MouseInput` or `KeyboardInput` to listen with (see [input](#input)) |
 | `loop` | start over once every layer that can end has ended |
-| `start` | ms into the timeline to begin at; looping goes back to 0, `reset()` back to `start` |
+| `start` | ms into the timeline to begin at, and where looping and `reset()` go back to |
 
 | method | what it does |
 | --- | --- |
@@ -18,7 +18,6 @@ https://cdn.jsdelivr.net/npm/@briwa.dev/canvas/dist/index.iife.js
 | `pause()` / `play()` | stop and resume the clock; `scene.paused` says which |
 | `reset()` | put every target back how it started and start the clock again |
 | `seek(time)` | jump to `time` ms into the timeline on the next frame |
-| `onReset(fn)` | call `fn` on every reset; returns a function that stops listening |
 | `onFinish(fn)` | call `fn` each time the scene finishes; returns a function that stops listening |
 | `destroy()` | stop listening to inputs |
 
@@ -153,7 +152,7 @@ loop((t) => scene.render(t));
 
 ## Your own controls
 
-`onReset` fires on every reset, including the ones from looping.
+`onFinish` fires each time the scene gets to the end, whether or not it loops.
 
 ```sandbox=js viz=root 640x300 control=none code
 const { Scene, layer, circle, tween, sequence, easeInOutSine } = Canvas;
@@ -203,14 +202,14 @@ const looping = button('loop: on', () => {
   looping.textContent = scene.loop ? 'loop: on' : 'loop: off';
 });
 
-const resets = document.createElement('span');
-resets.textContent = 'resets: 0';
-bar.append(resets);
+const finished = document.createElement('span');
+finished.textContent = 'finished: 0';
+bar.append(finished);
 
 let count = 0;
-scene.onReset(() => {
+scene.onFinish(() => {
   count++;
-  resets.textContent = `resets: ${count}`;
+  finished.textContent = `finished: ${count}`;
 });
 
 loop((t) => scene.render(t));

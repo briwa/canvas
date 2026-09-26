@@ -425,9 +425,9 @@ describe('scene', () => {
       const fig = open('scene.md', 'Your own controls');
       const button = (text) => fig.elements.find((el) => el.textContent === text);
       const controls = { pause: button('pause'), reset: button('reset'), loop: button('loop: on') };
-      const resets = fig.elements.find((el) => el.tagName === 'SPAN');
+      const finished = fig.elements.find((el) => el.tagName === 'SPAN');
 
-      return { fig, controls, resets };
+      return { fig, controls, finished };
     };
     const ball = (ops) => parse(ops[1]);
 
@@ -440,19 +440,19 @@ describe('scene', () => {
         'pause',
         'reset',
         'loop: on',
-        'resets: 0',
+        'finished: 0',
       ]);
     });
 
-    it('rolls the ball across, fades it, and loops, counting each reset', () => {
-      const { fig, resets } = start();
+    it('rolls the ball across, fades it, and loops, counting each finish', () => {
+      const { fig, finished } = start();
       const trace = play(fig, { to: 1960 });
 
       expect(ball(at(trace, 0))).toMatchObject({ x0: 20, alpha: 1 });
       expect(ball(at(trace, 1500))).toMatchObject({ x0: 580, alpha: 1 });
       expect(ball(at(trace, 1900))).toMatchObject({ x0: 580, alpha: 0 });
       expect(ball(at(trace, 1920))).toMatchObject({ x0: 20, alpha: 1 });
-      expect(resets.textContent).toBe('resets: 1');
+      expect(finished.textContent).toBe('finished: 1');
     });
 
     it('pauses and plays from its own button', () => {
@@ -481,7 +481,7 @@ describe('scene', () => {
     });
 
     it('starts over from its own button', () => {
-      const { fig, controls, resets } = start();
+      const { fig, controls, finished } = start();
       const trace = play(fig, {
         to: 1100,
         onFrame: script({ 1000: () => controls.reset.click() }),
@@ -489,11 +489,11 @@ describe('scene', () => {
 
       expect(at(trace, 1000)).toEqual(at(trace, 0));
       expect(at(trace, 1100)).toEqual(at(trace, 100));
-      expect(resets.textContent).toBe('resets: 1');
+      expect(finished.textContent).toBe('finished: 0');
     });
 
     it('stays at the end with looping off, and loops again once it is back on', () => {
-      const { fig, controls, resets } = start();
+      const { fig, controls, finished } = start();
       const trace = play(fig, {
         to: 3000,
         onFrame: script({
@@ -508,7 +508,7 @@ describe('scene', () => {
       expect(controls.loop.textContent).toBe('loop: on');
       expect(ball(at(trace, 2780))).toMatchObject({ x0: 580, alpha: 0 });
       expect(ball(at(trace, 2820))).toMatchObject({ x0: 20, alpha: 1 });
-      expect(resets.textContent).toBe('resets: 1');
+      expect(finished.textContent).toBe('finished: 1');
     });
   });
 });

@@ -19,7 +19,6 @@ export class Scene {
     this.elapsed = 0;
     this.time = null;
     this.initial = this.targets.map((target) => target.snapshot());
-    this.resets = new Set();
     this.finishes = new Set();
 
     for (const input of this.inputs) input.attach(this.renderer?.canvas ?? null);
@@ -68,7 +67,7 @@ export class Scene {
       for (const fn of this.finishes) fn(this);
     }
 
-    if (this.loop && this.finished) this.seek(0);
+    if (this.loop && this.finished) this.reset();
 
     for (const input of this.inputs) input.flush();
 
@@ -98,14 +97,8 @@ export class Scene {
     this.targets.forEach((target, i) => target.restore(this.initial[i]));
 
     for (const input of this.inputs) input.reset();
-    for (const fn of this.resets) fn(this);
 
     return this;
-  }
-
-  onReset(fn) {
-    this.resets.add(fn);
-    return () => this.resets.delete(fn);
   }
 
   onFinish(fn) {
@@ -116,7 +109,6 @@ export class Scene {
   destroy() {
     for (const input of this.inputs) input.detach();
 
-    this.resets.clear();
     this.finishes.clear();
 
     return this;

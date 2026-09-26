@@ -534,25 +534,6 @@ describe('Scene', () => {
     expect(hero.alpha).toBeCloseTo(0.5);
   });
 
-  it('tells whoever is listening when it resets', () => {
-    const { scene } = build({ loop: true });
-    const first = vi.fn();
-    const second = vi.fn();
-
-    scene.onReset(first);
-    const off = scene.onReset(second);
-
-    scene.reset();
-    expect(first).toHaveBeenCalledWith(scene);
-    expect(second).toHaveBeenCalledTimes(1);
-
-    off();
-    play(scene, 0, 800);
-
-    expect(first).toHaveBeenCalledTimes(2);
-    expect(second).toHaveBeenCalledTimes(1);
-  });
-
   it('says when it finishes, once per run', () => {
     const { scene } = build();
     const finish = vi.fn();
@@ -575,13 +556,10 @@ describe('Scene', () => {
 
   it('can be reset by hand once it finishes', () => {
     const { scene, hero } = build();
-    const reset = vi.fn();
-    scene.onReset(reset);
     scene.onFinish(() => scene.reset());
 
     play(scene, 0, 800);
 
-    expect(reset).toHaveBeenCalledTimes(1);
     expect(hero).toMatchObject({ x0: 10, alpha: 0 });
 
     scene.render(900);
@@ -589,16 +567,16 @@ describe('Scene', () => {
     expect(scene.finished).toBe(false);
   });
 
-  it('says it finished before it loops', () => {
-    const { scene } = build({ loop: true });
-    const calls = [];
-    scene.onFinish(() => calls.push('finish'));
-    scene.onReset(() => calls.push('reset'));
+  it('says it finished before it loops, on the last frame', () => {
+    const { scene, hero } = build({ loop: true });
+    const seen = [];
+    scene.onFinish(() => seen.push(hero.x0));
 
     play(scene, 0, 800);
     play(scene, 900, 1700);
 
-    expect(calls).toEqual(['finish', 'reset', 'finish', 'reset']);
+    expect(seen.map(Math.round)).toEqual([110, 110]);
+    expect(hero.x0).toBe(10);
   });
 
   it('never says it finished when nothing ends', () => {
@@ -624,14 +602,11 @@ describe('Scene', () => {
 
   it('loops itself once it finishes', () => {
     const { scene, hero } = build({ loop: true });
-    const reset = vi.fn();
-    scene.onReset(reset);
 
     play(scene, 0, 700);
-    expect(reset).not.toHaveBeenCalled();
+    expect(hero.x0).toBeGreaterThan(10);
 
     scene.render(800);
-    expect(reset).toHaveBeenCalledTimes(1);
     expect(scene.finished).toBe(false);
     expect(hero.x0).toBe(10);
 
@@ -664,25 +639,26 @@ describe('Scene', () => {
     expect(late.bands[0].alpha).toBeCloseTo(plain.bands[0].alpha);
   });
 
-  it('loops back to 0, but resets back to where it started', () => {
+  it('loops and resets back to where it started', () => {
     const { scene, hero } = build({ loop: true, start: 700 });
+    const at700 = 10 + (100 * 5) / 6;
 
     scene.render(0);
     expect(scene.elapsed).toBe(700);
-    expect(hero.x0).toBeCloseTo(10 + (100 * 5) / 6);
+    expect(hero.x0).toBeCloseTo(at700);
 
     scene.render(100);
     expect(hero).toMatchObject({ x0: 10, alpha: 0 });
 
     scene.render(200);
-    expect(scene.elapsed).toBe(0);
-    scene.render(300);
-    expect(scene.elapsed).toBe(100);
-
-    scene.reset();
-    scene.render(400);
     expect(scene.elapsed).toBe(700);
-    expect(hero.x0).toBeCloseTo(10 + (100 * 5) / 6);
+    expect(hero.x0).toBeCloseTo(at700);
+
+    scene.render(250);
+    scene.reset();
+    scene.render(300);
+    expect(scene.elapsed).toBe(700);
+    expect(hero.x0).toBeCloseTo(at700);
   });
 
   it('can jump anywhere', () => {
