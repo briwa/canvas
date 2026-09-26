@@ -57,15 +57,22 @@ describe('every page', () => {
 });
 
 describe('getting started', () => {
-  it('bounces the ball from side to side', () => {
+  it('bounces the ball there and back once, then tells the sandbox to reset', () => {
     const fig = open('getting-started.md', 'Getting started');
-    const trace = play(fig, { to: 2400 });
+    const trace = play(fig, {
+      to: 2400,
+      onFrame: (t) => expect(fig.resets).toBe(0),
+    });
     const ball = (t) => parse(find(at(trace, t), CORAL)[0]);
 
     expect(ball(0)).toMatchObject({ x0: 40, x1: 80, y0: 80, y1: 120 });
     expect(ball(600).x0).toBeCloseTo(300, 0);
     expect(ball(1200)).toMatchObject({ x0: 560, x1: 600 });
     expect(ball(2400)).toMatchObject({ x0: 40, x1: 80 });
+    expect(fig.resets).toBe(1);
+
+    play(fig, { from: 2420, to: 4000 });
+    expect(fig.resets).toBe(1);
   });
 
   it('draws each kind of shape, and a custom one', () => {
@@ -93,6 +100,17 @@ describe('getting started', () => {
     expect(at(trace, 1200)[5]).toContain('L520,60 |');
     expect(at(trace, 2000)).toEqual(at(trace, 1200));
     expect(at(trace, 3200)).toEqual(first);
+    expect(fig.resets).toBe(1);
+  });
+
+  it('tells the sandbox to reset only once the shapes are done', () => {
+    const fig = open('getting-started.md', 'Shapes');
+
+    play(fig, { to: 3180 });
+    expect(fig.resets).toBe(0);
+
+    play(fig, { from: 3200, to: 3200 });
+    expect(fig.resets).toBe(1);
   });
 });
 

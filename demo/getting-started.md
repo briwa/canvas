@@ -10,8 +10,8 @@ Figures get `canvas`, `width`, `height` and `loop(fn)`, which calls `fn` with th
 
 A scene draws layers. A layer holds targets and a step that changes them. Steps inside a layer work on its targets, unless they name their own.
 
-```sandbox=js viz 640x200 control=auto code
-const { Scene, layer, circle, tween, sequence, repeat, easeInOutSine } = Canvas;
+```sandbox=js viz 640x200 code
+const { Scene, layer, circle, tween, sequence, easeInOutSine } = Canvas;
 
 const ball = circle({ x0: 40, y0: 80, x1: 80, y1: 120, color: { r: 224, g: 122, b: 95 } });
 
@@ -20,15 +20,15 @@ const scene = new Scene({
   layers: [
     layer(
       ball,
-      repeat(
-        sequence(
-          tween({ x0: width - 80, x1: width - 40 }, { duration: 1200, ease: easeInOutSine }),
-          tween({ x0: 40, x1: 80 }, { duration: 1200, ease: easeInOutSine }),
-        ),
+      sequence(
+        tween({ x0: width - 80, x1: width - 40 }, { duration: 1200, ease: easeInOutSine }),
+        tween({ x0: 40, x1: 80 }, { duration: 1200, ease: easeInOutSine }),
       ),
     ),
   ],
 });
+
+scene.onFinish(() => reset());
 
 loop((t) => scene.render(t));
 ```
@@ -44,14 +44,13 @@ Every shape sits in a box from `(x0, y0)` to `(x1, y1)`, with `color`, `alpha` a
 | `line` | a line from `(x0, y0)` to `(x1, y1)`, bent by `ease`, drawn from `t0` to `t1` | `ease`, `t0`, `t1`, `segments` |
 | `arc` | the outline of the ellipse, from `startAngle` to `endAngle` | `startAngle`, `endAngle` |
 
-```sandbox=js viz 640x200 control=auto code
-const { Scene, layer, Entity, rect, circle, line, arc, tween, wait, sequence, repeat, easeInOutSine } = Canvas;
+```sandbox=js viz 640x200 code
+const { Scene, layer, Entity, rect, circle, line, arc, tween, wait, sequence, easeInOutSine } = Canvas;
 
 const color = { r: 224, g: 122, b: 95 };
 const box = (i) => ({ x0: 20 + i * 105, y0: 60, x1: 100 + i * 105, y1: 140 });
 
-const draw = (to, back) =>
-  repeat(sequence(tween(to, { duration: 1200 }), wait(800), tween(back, { duration: 1200 })));
+const draw = (to, back) => sequence(tween(to, { duration: 1200 }), wait(800), tween(back, { duration: 1200 }));
 
 const triangle = new Entity({
   ...box(5),
@@ -78,6 +77,8 @@ const scene = new Scene({
     layer(triangle),
   ],
 });
+
+scene.onFinish(() => reset());
 
 loop((t) => scene.render(t));
 ```

@@ -203,6 +203,7 @@ export function mount(block) {
   const elements = [];
   const cleanups = [];
   let frame = null;
+  let resets = 0;
 
   const document = {
     createElement(tag) {
@@ -233,7 +234,9 @@ export function mount(block) {
         frame = null;
       };
     },
-    reset() {},
+    reset() {
+      resets++;
+    },
     onCleanup(fn) {
       cleanups.push(fn);
     },
@@ -249,6 +252,9 @@ export function mount(block) {
     canvas: stage,
     root: surface.root,
     elements,
+    get resets() {
+      return resets;
+    },
     tick(time) {
       frame?.(time);
       return stage.context.take();
