@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { Entity, circle, line, rect } from '../src/entity';
 import { Input } from '../src/inputs';
+import { layer } from '../src/layer';
 import { linear, mix, polar } from '../src/math';
 import { Scene } from '../src/scene';
 import {
@@ -22,6 +23,14 @@ function fade(targets, duration) {
 
 function drift(targets, dx, duration) {
   return tween(targets, (e) => ({ x0: e.x0 + dx, x1: e.x1 + dx }), { duration, ease: linear });
+}
+
+function fadeIn(duration) {
+  return tween({ alpha: 1 }, { duration, ease: linear, from: { alpha: 0 } });
+}
+
+function shift(dx, duration) {
+  return tween((e) => ({ x0: e.x0 + dx, x1: e.x1 + dx }), { duration, ease: linear });
 }
 
 function play(scene, from, to, each = 100) {
@@ -181,6 +190,118 @@ describe('steps', () => {
     });
   });
 
+  describe('layer', () => {
+    it('draws its children in order, going into nested layers', () => {
+      const [a, b, c, d] = [rect(), rect(), rect(), rect()];
+
+      expect(layer([a, layer([b, [c]]), d]).targets).toEqual([a, b, c, d]);
+      expect(layer(a).targets).toEqual([a]);
+    });
+
+    it('gives its targets to every step inside it', () => {
+      const a = rect({ x0: 0, x1: 10 });
+      const b = rect({ x0: 50, x1: 60 });
+      const l = layer([a, [b]], sequence(move({ x: 10 }, { duration: 100, ease: linear }), tween({ alpha: 0 }, { duration: 100, ease: linear })));
+
+      l.begin(0);
+      l.update(100);
+      l.update(200);
+
+      expect(a).toMatchObject({ x0: 10, alpha: 0 });
+      expect(b).toMatchObject({ x0: 60, alpha: 0 });
+    });
+
+    it('lets a step name its own targets instead', () => {
+      const a = rect();
+      const b = rect();
+      const l = layer(a, parallel(tween({ alpha: 0.5 }, { duration: 100, ease: linear }), tween(b, { alpha: 0 }, { duration: 100, ease: linear })));
+
+      l.begin(0);
+      l.update(100);
+
+      expect(a.alpha).toBe(0.5);
+      expect(b.alpha).toBe(0);
+    });
+
+    it('runs nested layers alongside its own step, each on its own targets', () => {
+      const body = rect({ x0: 0, x1: 10, y0: 0, y1: 10 });
+      const head = rect({ x0: 0, x1: 10, y0: 0, y1: 10 });
+      const l = layer([layer(body), layer(head, fadeIn(100))], move({ x: 50 }, { duration: 100, ease: linear }));
+
+      l.begin(0);
+      l.update(50);
+
+      expect(body).toMatchObject({ x0: 25, alpha: 1 });
+      expect(head).toMatchObject({ x0: 25, alpha: 0.5 });
+    });
+
+    it('keeps its targets through repeats and later steps', () => {
+      const e = rect({ x0: 0, x1: 10 });
+      const l = layer(e, repeat(sequence(wait(50), move({ x: 10 }, { duration: 50, ease: linear })), 3));
+
+      l.begin(0);
+      for (let time = 0; time <= 300; time += 25) l.update(time);
+
+      expect(l.finished).toBe(true);
+      expect(e.x0).toBeCloseTo(30);
+    });
+
+    it('hands its targets to custom steps', () => {
+      const a = rect();
+      const b = rect();
+      const seen = [];
+
+      layer([a, b], step({ duration: 100, start: (s) => seen.push(s.targets) })).begin(0);
+
+      expect(seen).toEqual([[a, b]]);
+    });
+
+    it('never holds up finishing when it has no step', () => {
+      const e = rect();
+      const s = parallel(layer(rect()), layer(e, fadeIn(100)), layer([rect(), layer(rect())]));
+
+      s.begin(0);
+      s.update(50);
+      expect(s.finished).toBe(false);
+
+      s.update(100);
+      expect(s.finished).toBe(true);
+    });
+  });
+
+  describe('targets', () => {
+    it('can be given directly to step and forever', () => {
+      const e = rect();
+      const seen = [];
+
+      const a = step(e, { start: (s) => seen.push(s.targets) });
+      const b = forever([e], (s) => seen.push(s.targets));
+      a.begin(0);
+      b.begin(0);
+      b.update(10);
+
+      expect(seen).toEqual([[e], [e]]);
+    });
+
+    it('are required for steps that use them outside a layer', () => {
+      expect(() => tween({ alpha: 0 }, { duration: 100 }).begin(0)).toThrow(/no targets/);
+      expect(() => move({ x: 5 }).begin(0)).toThrow(/put it in a layer/);
+
+      const custom = step({ update: (s) => s.targets });
+      custom.begin(0);
+      expect(() => custom.update(10)).toThrow(/no targets/);
+    });
+
+    it('are not needed for steps that do not use them', () => {
+      const s = sequence(wait(10), until(() => true), forever(() => {}));
+
+      expect(() => {
+        s.begin(0);
+        s.update(100);
+      }).not.toThrow();
+    });
+  });
+
   describe('sequence', () => {
     it('plays its steps one after another', () => {
       const e = rect({ x0: 0 });
@@ -323,21 +444,20 @@ describe('Scene', () => {
 
     const scene = new Scene({
       loop,
-      entities: [bands, canopies, hero],
-      step: parallel(
-        repeat(sequence(fade(bands, 600), fade(bands, 600))),
-        repeat(sequence(drift(canopies, 8, 300), drift(canopies, -8, 300))),
-        sequence(fade(hero, 200), drift(hero, 100, 600)),
-      ),
+      layers: [
+        layer(bands, repeat(sequence(fadeIn(600), fadeIn(600)))),
+        layer(canopies, repeat(sequence(shift(8, 300), shift(-8, 300)))),
+        layer(hero, sequence(fadeIn(200), shift(100, 600))),
+      ],
     });
 
     return { scene, bands, canopies, hero };
   }
 
-  it('draws its entities in the order given', () => {
+  it('draws its layers back to front', () => {
     const { scene, bands, canopies, hero } = build();
 
-    expect(scene.entities).toEqual([...bands, ...canopies, hero]);
+    expect(scene.targets).toEqual([...bands, ...canopies, hero]);
   });
 
   it('paints every entity through its own draw function', () => {
@@ -346,7 +466,7 @@ describe('Scene', () => {
     const canvas = { width: 10, height: 10, getContext: () => ctx };
     const custom = new Entity({ draw, color: { r: 1, g: 2, b: 3 }, alpha: 0.5 });
 
-    new Scene({ canvas, entities: [custom] }).render(0);
+    new Scene({ canvas, layers: [layer(custom)] }).render(0);
 
     expect(ctx.clearRect).toHaveBeenCalledWith(0, 0, 10, 10);
     expect(draw).toHaveBeenCalledWith(ctx, custom);
@@ -384,15 +504,15 @@ describe('Scene', () => {
     expect(hero.x0).toBeCloseTo(110);
   });
 
-  it('never finishes without a step', () => {
-    const scene = new Scene({ entities: [rect()] });
+  it('never finishes when no layer has a step', () => {
+    const scene = new Scene({ layers: [layer(rect()), layer([rect()])] });
 
     scene.render(0);
 
     expect(scene.finished).toBe(false);
   });
 
-  it('rewinds entities and the clock on reset', () => {
+  it('rewinds its targets and the clock on reset', () => {
     const { scene, canopies, hero } = build();
 
     play(scene, 0, 800);

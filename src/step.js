@@ -1,4 +1,13 @@
+import { Entity } from './entity';
 import { Tweener } from './tweener';
+
+function isTargets(value) {
+  return Array.isArray(value) || value instanceof Entity;
+}
+
+function list(targets) {
+  return targets === undefined || targets === null ? null : [targets].flat(Infinity);
+}
 
 function end(step, time) {
   const span = step.span;
@@ -7,7 +16,9 @@ function end(step, time) {
 }
 
 export class Step {
-  constructor({ duration = null, start, update } = {}) {
+  constructor({ targets, duration = null, start, update } = {}) {
+    this.own = list(targets);
+    this.resolved = this.own;
     this.duration = duration;
     this.onStart = start;
     this.onUpdate = update;
@@ -20,6 +31,14 @@ export class Step {
 
   get span() {
     return this.duration;
+  }
+
+  get targets() {
+    if (!this.resolved) {
+      throw new Error('This step has no targets. Pass them in, or put it in a layer.');
+    }
+
+    return this.resolved;
   }
 
   get elapsed() {
@@ -36,7 +55,8 @@ export class Step {
     return this.done || (this.duration !== null && this.elapsed >= this.duration);
   }
 
-  begin(time) {
+  begin(time, targets = null) {
+    this.resolved = this.own ?? targets;
     this.startTime = time;
     this.time = time;
     this.dt = 0;
@@ -66,6 +86,7 @@ class Sequence {
   constructor(steps) {
     this.steps = steps;
     this.startTime = 0;
+    this.targets = null;
     this.cursor = 0;
     this.index = -1;
     this.step = null;
@@ -89,8 +110,9 @@ class Sequence {
     return this.done;
   }
 
-  begin(time) {
+  begin(time, targets = null) {
     this.startTime = time;
+    this.targets = targets;
     this.cursor = time;
     this.index = -1;
     this.step = null;
@@ -109,7 +131,7 @@ class Sequence {
 
         this.index++;
         this.step = next;
-        next.begin(this.cursor);
+        next.begin(this.cursor, this.targets);
       }
 
       this.step.update(time);
@@ -162,11 +184,11 @@ class Parallel {
     return ends;
   }
 
-  begin(time) {
+  begin(time, targets = null) {
     this.startTime = time;
 
     for (const step of this.steps) {
-      step.begin(time);
+      step.begin(time, targets);
     }
   }
 
@@ -182,6 +204,7 @@ class Repeat {
     this.step = step;
     this.times = times;
     this.startTime = 0;
+    this.targets = null;
     this.count = 0;
   }
 
@@ -197,10 +220,11 @@ class Repeat {
     return this.count >= this.times;
   }
 
-  begin(time) {
+  begin(time, targets = null) {
     this.startTime = time;
+    this.targets = targets;
     this.count = 0;
-    this.step.begin(time);
+    this.step.begin(time, targets);
   }
 
   update(time) {
@@ -214,7 +238,7 @@ class Repeat {
       if (this.finished) return;
 
       const at = end(this.step, time);
-      this.step.begin(at);
+      this.step.begin(at, this.targets);
 
       if (at === time) {
         this.step.update(time);
@@ -224,8 +248,10 @@ class Repeat {
   }
 }
 
-export function step(options) {
-  return new Step(options);
+export function step(...args) {
+  const [targets, options] = isTargets(args[0]) ? args : [undefined, args[0]];
+
+  return new Step({ ...options, targets });
 }
 
 export function wait(duration) {
@@ -240,19 +266,24 @@ export function until(predicate) {
   });
 }
 
-export function forever(update) {
-  return new Step({ duration: Infinity, update });
+export function forever(...args) {
+  const [targets, update] = isTargets(args[0]) ? args : [undefined, args[0]];
+
+  return new Step({ targets, duration: Infinity, update });
 }
 
-export function tween(targets, to, { duration = 0, stagger = 0, ease, from } = {}) {
-  const list = [targets].flat(Infinity);
+export function tween(...args) {
+  const [targets, to, { duration = 0, stagger = 0, ease, from } = {}] = isTargets(args[0])
+    ? args
+    : [undefined, ...args];
 
   return new Step({
+    targets,
     duration: duration + stagger,
     start(s) {
-      const gap = list.length > 1 ? stagger / (list.length - 1) : 0;
+      const gap = s.targets.length > 1 ? stagger / (s.targets.length - 1) : 0;
 
-      list.forEach((target, i) => {
+      s.targets.forEach((target, i) => {
         s.tween(target, {
           startAt: i * gap,
           duration,
@@ -265,15 +296,14 @@ export function tween(targets, to, { duration = 0, stagger = 0, ease, from } = {
   });
 }
 
-export function move(targets, { x, y }, options) {
-  return tween(
-    targets,
-    (target) => ({
-      ...(x !== undefined && { x0: target.x0 + x, x1: target.x1 + x }),
-      ...(y !== undefined && { y0: target.y0 + y, y1: target.y1 + y }),
-    }),
-    options,
-  );
+export function move(...args) {
+  const [targets, { x, y }, options] = isTargets(args[0]) ? args : [undefined, ...args];
+  const to = (target) => ({
+    ...(x !== undefined && { x0: target.x0 + x, x1: target.x1 + x }),
+    ...(y !== undefined && { y0: target.y0 + y, y1: target.y1 + y }),
+  });
+
+  return targets === undefined ? tween(to, options) : tween(targets, to, options);
 }
 
 export function sequence(...steps) {

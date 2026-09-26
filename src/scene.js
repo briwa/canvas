@@ -1,17 +1,19 @@
 import { Renderer } from './renderer';
+import { parallel } from './step';
 
 export class Scene {
-  constructor({ canvas, renderer, entities = [], step = null, inputs = [], loop = false } = {}) {
+  constructor({ canvas, renderer, layers = [], inputs = [], loop = false } = {}) {
     this.renderer = renderer ?? (canvas ? new Renderer(canvas) : null);
-    this.entities = entities.flat(Infinity);
-    this.step = step;
+    this.layers = [layers].flat(Infinity);
+    this.targets = this.layers.flatMap((layer) => layer.targets);
+    this.step = this.layers.length ? parallel(this.layers) : null;
     this.inputs = [inputs].flat();
     this.loop = loop;
     this.paused = false;
     this.started = false;
     this.elapsed = 0;
     this.time = null;
-    this.initial = this.entities.map((entity) => entity.snapshot());
+    this.initial = this.targets.map((target) => target.snapshot());
     this.resets = new Set();
 
     for (const input of this.inputs) input.attach(this.renderer?.canvas ?? null);
@@ -44,7 +46,7 @@ export class Scene {
     if (!this.renderer) return this;
 
     this.renderer.clear();
-    this.renderer.render(this.entities);
+    this.renderer.render(this.targets);
 
     return this;
   }
@@ -74,7 +76,7 @@ export class Scene {
     this.started = false;
     this.elapsed = 0;
 
-    this.entities.forEach((entity, i) => entity.restore(this.initial[i]));
+    this.targets.forEach((target, i) => target.restore(this.initial[i]));
 
     for (const input of this.inputs) input.reset();
     for (const fn of this.resets) fn(this);

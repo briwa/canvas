@@ -16,7 +16,7 @@ Pass inputs to the scene with `inputs: [...]`, and call `scene.destroy()` to rem
 | `pressed`, `released` | true only on the frame it happened |
 
 ```sandbox=js viz 460x300 control=none code
-const { Scene, MouseInput, arc, circle, rect, step, forever, tween, move, until, sequence, parallel, repeat, easeInOutSine, lerp, mix } = Canvas;
+const { Scene, layer, MouseInput, arc, circle, rect, step, forever, tween, move, until, sequence, repeat, easeInOutSine, lerp, mix } = Canvas;
 
 const HORIZON = 210;
 const home = { x: width / 2, y: HORIZON - 92 };
@@ -44,18 +44,19 @@ const ring = arc({ alpha: 0, lineWidth: 3, color: { r: 255, g: 214, b: 160 } });
 
 const mouse = new MouseInput();
 
-function follow(entities, smoothing) {
+function follow(smoothing) {
   let center;
   let offsets;
 
   return step({
     duration: Infinity,
-    start() {
-      const x = entities.reduce((sum, e) => sum + (e.x0 + e.x1) / 2 / entities.length, 0);
-      const y = entities.reduce((sum, e) => sum + (e.y0 + e.y1) / 2 / entities.length, 0);
+    start(s) {
+      const n = s.targets.length;
+      const x = s.targets.reduce((sum, e) => sum + (e.x0 + e.x1) / 2 / n, 0);
+      const y = s.targets.reduce((sum, e) => sum + (e.y0 + e.y1) / 2 / n, 0);
 
       center = { x, y };
-      offsets = entities.map((e) => ({ x0: e.x0 - x, x1: e.x1 - x, y0: e.y0 - y, y1: e.y1 - y }));
+      offsets = s.targets.map((e) => ({ x0: e.x0 - x, x1: e.x1 - x, y0: e.y0 - y, y1: e.y1 - y }));
     },
     update(s) {
       const aim = mouse.inside ? mouse : home;
@@ -64,7 +65,7 @@ function follow(entities, smoothing) {
       center.x = lerp(center.x, aim.x, t);
       center.y = lerp(center.y, aim.y, t);
 
-      entities.forEach((e, i) => {
+      s.targets.forEach((e, i) => {
         e.x0 = center.x + offsets[i].x0;
         e.x1 = center.x + offsets[i].x1;
         e.y0 = center.y + offsets[i].y0;
@@ -75,11 +76,10 @@ function follow(entities, smoothing) {
 }
 
 const glow = forever((s) => {
-  halo.alpha = lerp(halo.alpha, mouse.down ? 0.55 : 0.22, 1 - 0.86 ** (s.dt / 16));
+  for (const e of s.targets) e.alpha = lerp(e.alpha, mouse.down ? 0.55 : 0.22, 1 - 0.86 ** (s.dt / 16));
 });
 
 const burst = tween(
-  ring,
   () => ({ x0: mouse.x - 70, x1: mouse.x + 70, y0: mouse.y - 70, y1: mouse.y + 70, alpha: 0 }),
   {
     duration: 520,
@@ -88,18 +88,17 @@ const burst = tween(
   },
 );
 
-const sway = (x) => move(canopies, { x }, { duration: 1700, ease: easeInOutSine });
+const sway = (x) => move({ x }, { duration: 1700, ease: easeInOutSine });
 
 const scene = new Scene({
   canvas,
   inputs: [mouse],
-  entities: [bands, ground, trunks, canopies, ring, halo, lantern],
-  step: parallel(
-    repeat(sequence(sway(5), sway(-5))),
-    repeat(sequence(until(() => mouse.pressed), burst)),
-    follow([halo, lantern], 0.16),
-    glow,
-  ),
+  layers: [
+    layer([bands, ground, trunks]),
+    layer(canopies, repeat(sequence(sway(5), sway(-5)))),
+    layer(ring, repeat(sequence(until(() => mouse.pressed), burst))),
+    layer([layer(halo, glow), lantern], follow(0.16)),
+  ],
 });
 
 loop((t) => scene.render(t));
@@ -118,7 +117,7 @@ onCleanup(() => scene.destroy());
 Click the figure first. Walk with ← → or A / D, hop with space, ↑ or W.
 
 ```sandbox=js viz 460x300 control=none code
-const { Scene, KeyboardInput, circle, rect, forever, move, until, sequence, parallel, repeat, clamp, easeInOutSine, mix } = Canvas;
+const { Scene, layer, KeyboardInput, circle, rect, forever, move, until, sequence, parallel, repeat, clamp, easeInOutSine, mix } = Canvas;
 
 const HORIZON = 210;
 const JUMP = ['space', 'arrowup', 'w'];
@@ -154,29 +153,28 @@ const drive = forever((s) => {
   const dir = keyboard.axis(LEFT, RIGHT);
   if (!dir) return;
 
-  const min = Math.min(...hero.map((p) => p.x0));
-  const max = Math.max(...hero.map((p) => p.x1));
+  const min = Math.min(...s.targets.map((p) => p.x0));
+  const max = Math.max(...s.targets.map((p) => p.x1));
   const dx = clamp(dir * 0.2 * s.dt, 8 - min, width - 8 - max);
 
-  for (const part of hero) {
+  for (const part of s.targets) {
     part.x0 += dx;
     part.x1 += dx;
   }
 });
 
-const lift = (y) => move(hero, { y }, { duration: 260, ease: easeInOutSine });
+const lift = (y) => move({ y }, { duration: 260, ease: easeInOutSine });
 
-const sway = (x) => move(canopies, { x }, { duration: 1700, ease: easeInOutSine });
+const sway = (x) => move({ x }, { duration: 1700, ease: easeInOutSine });
 
 const scene = new Scene({
   canvas,
   inputs: [keyboard],
-  entities: [bands, ground, trunks, canopies, hero],
-  step: parallel(
-    repeat(sequence(sway(5), sway(-5))),
-    drive,
-    repeat(sequence(until(() => keyboard.pressed(...JUMP)), lift(-78), lift(78))),
-  ),
+  layers: [
+    layer([bands, ground, trunks]),
+    layer(canopies, repeat(sequence(sway(5), sway(-5)))),
+    layer(hero, parallel(drive, repeat(sequence(until(() => keyboard.pressed(...JUMP)), lift(-78), lift(78))))),
+  ],
 });
 
 loop((t) => scene.render(t));

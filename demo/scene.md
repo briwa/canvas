@@ -7,25 +7,26 @@ https://cdn.jsdelivr.net/npm/@briwa.dev/canvas/dist/index.iife.js
 | option | what it is |
 | --- | --- |
 | `canvas` | the `<canvas>` to draw on |
-| `entities` | what to draw, back to front. Nested arrays are flattened. |
-| `step` | what happens over time, usually a `parallel` of everything |
+| `layers` | drawn back to front, all running at once |
 | `inputs` | a `MouseInput` or `KeyboardInput` to listen with (see [input](#input)) |
-| `loop` | start over once the step is done |
+| `loop` | start over once every layer that can end has ended |
 
 | method | what it does |
 | --- | --- |
 | `render(time)` | move to `time` (in ms) and draw |
 | `pause()` / `play()` | stop and resume the clock; `scene.paused` says which |
-| `reset()` | put every entity back how it started and start the clock again |
+| `reset()` | put every target back how it started and start the clock again |
 | `onReset(fn)` | call `fn` on every reset; returns a function that stops listening |
 | `destroy()` | stop listening to inputs |
 
+`layer(targets, step?)` draws its targets in order, which can be shapes or other layers. Its step works on every target inside it, unless a step names its own. A layer without a step just draws.
+
 ## Finishing and looping
 
-Parts that run forever don't count towards finishing. With `loop: true`, the scene starts over once the rest is done.
+Layers that run forever, or have no step, don't count towards finishing. With `loop: true`, the scene starts over once the rest is done.
 
 ```sandbox=js viz 960x480 control=auto code
-const { Scene, circle, rect, step, tween, move, sequence, parallel, repeat, easeInOutSine, linear, mix } = Canvas;
+const { Scene, layer, circle, rect, step, tween, move, sequence, repeat, easeInOutSine, linear, mix } = Canvas;
 
 const HORIZON = 330;
 const BANDS = 6;
@@ -35,14 +36,14 @@ const DUSK = { top: { r: 38, g: 32, b: 62 }, low: { r: 216, g: 118, b: 82 } };
 const DAWN = { top: { r: 46, g: 56, b: 96 }, low: { r: 196, g: 122, b: 132 } };
 const DAY = { top: { r: 78, g: 140, b: 206 }, low: { r: 190, g: 218, b: 238 } };
 
-function walk(parts, { duration, dx, strides, lift = 7 }) {
+function walk({ duration, dx, strides, lift = 7 }) {
   const beats = strides * 2;
   const span = duration / beats;
 
   return step({
     duration,
     start(s) {
-      for (const part of parts) {
+      for (const part of s.targets) {
         s.tween(part, { startAt: 0, duration, ease: linear, to: { x0: part.x0 + dx, x1: part.x1 + dx } });
 
         const { y0, y1 } = part;
@@ -104,38 +105,44 @@ const body = rect({ x0: 60, x1: 86, y0: HORIZON - 46, y1: HORIZON, alpha: 0, col
 const head = circle({ x0: 64, x1: 82, y0: HORIZON - 66, y1: HORIZON - 46, alpha: 0, color: { r: 246, g: 208, b: 178 } });
 const hero = [body, head];
 
-const sky = (duration, { top, low }, ease, to) =>
-  parallel(
-    tween(bands, (_, i) => ({ color: mix(top, low, i / (BANDS - 1)) }), { duration, ease: linear }),
-    tween(sun, to, { duration, ease }),
-  );
+const skyTo = ({ top, low }, duration) =>
+  tween((_, i) => ({ color: mix(top, low, i / (BANDS - 1)) }), { duration, ease: linear });
 
-const sway = (x) => move(canopies, { x }, { duration: 1300, ease: easeInOutSine });
+const sunTo = (y0, duration, ease) => tween({ y0, y1: y0 + SUN }, { duration, ease });
 
-const hop = (y) => move(hero, { y }, { duration: 260, ease: easeInOutSine });
+const sway = (x) => move({ x }, { duration: 1300, ease: easeInOutSine });
+
+const hop = (y) => move({ y }, { duration: 260, ease: easeInOutSine });
 
 const scene = new Scene({
   canvas,
   loop: true,
-  entities: [bands, sun, ground, trunks, canopies, hero],
-  step: parallel(
-    repeat(
-      sequence(
-        sky(2200, DAWN, linear, { y0: HORIZON - 4, y1: HORIZON - 4 + SUN }),
-        sky(2800, DAY, easeInOutSine, { y0: 68, y1: 68 + SUN }),
-        sky(2800, DUSK, easeInOutSine, { y0: HORIZON + 26, y1: HORIZON + 26 + SUN }),
+  layers: [
+    layer(bands, repeat(sequence(skyTo(DAWN, 2200), skyTo(DAY, 2800), skyTo(DUSK, 2800)))),
+    layer(
+      sun,
+      repeat(
+        sequence(
+          sunTo(HORIZON - 4, 2200, linear),
+          sunTo(68, 2800, easeInOutSine),
+          sunTo(HORIZON + 26, 2800, easeInOutSine),
+        ),
       ),
     ),
-    repeat(sequence(sway(7), sway(-7))),
-    sequence(
-      tween(hero, { alpha: 1 }, { duration: 700 }),
-      walk(hero, { duration: 2500, dx: 330, strides: 7 }),
-      hop(-42),
-      hop(42),
-      walk(hero, { duration: 2500, dx: 330, strides: 7 }),
-      tween(hero, { alpha: 0 }, { duration: 700 }),
+    layer([ground, trunks]),
+    layer(canopies, repeat(sequence(sway(7), sway(-7)))),
+    layer(
+      hero,
+      sequence(
+        tween({ alpha: 1 }, { duration: 700 }),
+        walk({ duration: 2500, dx: 330, strides: 7 }),
+        hop(-42),
+        hop(42),
+        walk({ duration: 2500, dx: 330, strides: 7 }),
+        tween({ alpha: 0 }, { duration: 700 }),
+      ),
     ),
-  ),
+  ],
 });
 
 loop((t) => scene.render(t));
@@ -146,7 +153,7 @@ loop((t) => scene.render(t));
 `onReset` fires on every reset, including the ones from looping.
 
 ```sandbox=js viz=root 640x300 control=none code
-const { Scene, circle, tween, sequence, easeInOutSine } = Canvas;
+const { Scene, layer, circle, tween, sequence, easeInOutSine } = Canvas;
 
 const canvas = document.createElement('canvas');
 canvas.width = width;
@@ -168,12 +175,16 @@ const ball = circle({ x0: 20, y0: 106, x1: 60, y1: 146, color: { r: 224, g: 122,
 
 const scene = new Scene({
   canvas,
-  entities: [ball],
   loop: true,
-  step: sequence(
-    tween(ball, { x0: width - 60, x1: width - 20 }, { duration: 1500, ease: easeInOutSine }),
-    tween(ball, { alpha: 0 }, { duration: 400 }),
-  ),
+  layers: [
+    layer(
+      ball,
+      sequence(
+        tween({ x0: width - 60, x1: width - 20 }, { duration: 1500, ease: easeInOutSine }),
+        tween({ alpha: 0 }, { duration: 400 }),
+      ),
+    ),
+  ],
 });
 
 const pause = button('pause', () => {
