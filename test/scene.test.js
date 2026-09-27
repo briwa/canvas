@@ -8,6 +8,7 @@ import { Scene } from '../src/scene';
 import {
   forever,
   move,
+  moveTo,
   parallel,
   repeat,
   sequence,
@@ -183,6 +184,114 @@ describe('steps', () => {
       s.update(100);
 
       expect(e).toMatchObject({ x0: 70, y0: 40, y1: 50 });
+    });
+  });
+
+  describe('move with a function', () => {
+    it('works out each target\'s offset from the function', () => {
+      const cards = [rect({ y0: 0, y1: 10 }), rect({ y0: 0, y1: 10 })];
+      const s = move(cards, (card, i) => ({ y: i % 2 ? 10 : -10 }), { duration: 100, ease: linear });
+
+      s.begin(0);
+      s.update(100);
+
+      expect(cards.map((c) => c.y0)).toEqual([-10, 10]);
+    });
+  });
+
+  describe('moveTo', () => {
+    it('moves each target so its x0, y0 lands on the point, keeping its shape', () => {
+      const card = line({ x0: 10, x1: 4, y0: 20, y1: 70 });
+      const s = moveTo([card], { x: 100, y: 0 }, { duration: 100, ease: linear });
+
+      s.begin(0);
+      s.update(50);
+      expect(card).toMatchObject({ x0: 55, x1: 49, y0: 10, y1: 60 });
+
+      s.update(100);
+      expect(card).toMatchObject({ x0: 100, x1: 94, y0: 0, y1: 50 });
+    });
+
+    it('takes a point for each target from a function', () => {
+      const cards = [rect({ x0: 50, x1: 52 }), rect({ x0: 0, x1: 2 }), rect({ x0: 90, x1: 92 })];
+      const s = moveTo(cards, (card, i) => ({ x: 10 + i * 6 }), { duration: 100, ease: linear });
+
+      s.begin(0);
+      s.update(100);
+
+      expect(cards.map((c) => [c.x0, c.x1])).toEqual([[10, 12], [16, 18], [22, 24]]);
+    });
+
+    it('leaves out an axis it is not given', () => {
+      const e = rect({ x0: 0, x1: 10, y0: 0, y1: 10 });
+      const s = moveTo([e], { x: 50 }, { duration: 100, ease: linear });
+
+      s.begin(0);
+      e.y0 = 30;
+      s.update(100);
+
+      expect(e).toMatchObject({ x0: 50, x1: 60, y0: 30 });
+    });
+
+    it('reads where each target is when it starts, not when it is made', () => {
+      const e = rect({ x0: 0, x1: 10 });
+      const s = sequence(move([e], { x: 40 }, { duration: 100, ease: linear }), moveTo([e], { x: 0 }, { duration: 100, ease: linear }));
+
+      s.begin(0);
+      s.update(100);
+      expect(e.x0).toBe(40);
+
+      s.update(150);
+      expect(e.x0).toBe(20);
+
+      s.update(200);
+      expect(e).toMatchObject({ x0: 0, x1: 10 });
+    });
+
+    it('works on the layer\'s targets', () => {
+      const cards = [rect({ x0: 50 }), rect({ x0: 70 })];
+      const l = layer(cards, moveTo((card, i) => ({ x: i * 10 }), { duration: 100, ease: linear }));
+
+      l.begin(0);
+      l.update(100);
+
+      expect(cards.map((c) => c.x0)).toEqual([0, 10]);
+    });
+  });
+
+  describe('tweening a field that is not there', () => {
+    it('throws when the target has no number for it', () => {
+      const card = rect();
+      const s = tween([card], { wobble: 1 }, { duration: 100 });
+
+      expect(() => s.begin(0)).toThrow(/Can't tween "wobble"/);
+    });
+
+    it('points out an option put in with the values', () => {
+      const card = rect();
+      const s = tween([card], { color: { r: 255 }, duration: 100 });
+
+      expect(() => s.begin(0)).toThrow(/"duration" is an option; options go in the third argument/);
+    });
+
+    it('throws for a colour channel or group that is not there', () => {
+      expect(() => tween([rect()], { color: { hue: 10 } }, { duration: 10 }).begin(0)).toThrow(/Can't tween "color.hue"/);
+      expect(() => tween([rect()], { shadow: { x: 1 } }, { duration: 10 }).begin(0)).toThrow(/no "shadow"/);
+    });
+
+    it('throws for a value that is not a number', () => {
+      expect(() => tween([rect()], { alpha: 'high' }, { duration: 10 }).begin(0)).toThrow(/Can't tween "alpha"/);
+    });
+
+    it('is fine when from gives the starting value', () => {
+      const card = rect();
+      card.glow = undefined;
+      const s = tween([card], { glow: 1 }, { duration: 100, ease: linear, from: { glow: 0 } });
+
+      s.begin(0);
+      s.update(50);
+
+      expect(card.glow).toBe(0.5);
     });
   });
 

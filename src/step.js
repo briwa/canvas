@@ -298,12 +298,30 @@ export function tween(...args) {
   });
 }
 
-export function move(...args) {
-  const [targets, { x, y }, options] = isTargets(args[0]) ? args : [undefined, ...args];
-  const to = (target) => ({
+function offset(target, { x, y }) {
+  return {
     ...(x !== undefined && { x0: target.x0 + x, x1: target.x1 + x }),
     ...(y !== undefined && { y0: target.y0 + y, y1: target.y1 + y }),
-  });
+  };
+}
+
+export function move(...args) {
+  const [targets, by, options] = isTargets(args[0]) ? args : [undefined, ...args];
+  const to = (target, i) => offset(target, typeof by === 'function' ? by(target, i) : by);
+
+  return targets === undefined ? tween(to, options) : tween(targets, to, options);
+}
+
+export function moveTo(...args) {
+  const [targets, point, options] = isTargets(args[0]) ? args : [undefined, ...args];
+  const to = (target, i) => {
+    const { x, y } = typeof point === 'function' ? point(target, i) : point;
+
+    return offset(target, {
+      x: x === undefined ? undefined : x - target.x0,
+      y: y === undefined ? undefined : y - target.y0,
+    });
+  };
 
   return targets === undefined ? tween(to, options) : tween(targets, to, options);
 }

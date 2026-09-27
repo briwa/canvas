@@ -96,7 +96,7 @@ loop((t) => scene.render(t));
 
 ## move, sequence, parallel, repeat, wait
 
-`move([targets]?, { x, y }, options)` is a `tween` by an offset.
+`move([targets]?, { x, y }, options)` is a `tween` by an offset, and `moveTo` moves `(x0, y0)` to a point. Both also take `(target, i) => ({ x, y })`.
 
 A `parallel` is done when every part that can end has ended.
 

@@ -1,5 +1,16 @@
 import { easeInOutSine, lerp } from './math';
 
+const OPTIONS = new Set(['duration', 'ease', 'stagger', 'from', 'startAt']);
+
+function prop(into, key, from, to, name = key) {
+  if (typeof from !== 'number' || typeof to !== 'number') {
+    const hint = OPTIONS.has(name) ? ` "${name}" is an option; options go in the third argument.` : '';
+    throw new TypeError(`Can't tween "${name}": it needs a number on both ends, got ${from} and ${to}.${hint}`);
+  }
+
+  return { into, key, from, to };
+}
+
 class Tween {
   constructor(target, { startAt, duration, from, to, ease = easeInOutSine }) {
     this.startAt = startAt;
@@ -15,14 +26,18 @@ class Tween {
       if (end !== null && typeof end === 'object') {
         const into = target[key];
 
+        if (into === null || typeof into !== 'object') {
+          throw new TypeError(`Can't tween "${key}": the target has no "${key}" to tween into.`);
+        }
+
         for (const leaf of Object.keys(end)) {
-          this.props.push({ into, key: leaf, from: from?.[key]?.[leaf] ?? into[leaf], to: end[leaf] });
+          this.props.push(prop(into, leaf, from?.[key]?.[leaf] ?? into[leaf], end[leaf], `${key}.${leaf}`));
         }
 
         continue;
       }
 
-      this.props.push({ into: target, key, from: from?.[key] ?? target[key], to: end });
+      this.props.push(prop(target, key, from?.[key] ?? target[key], end));
     }
   }
 
