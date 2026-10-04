@@ -1,8 +1,18 @@
-import { linear } from './math';
-import { drawArc, drawCircle, drawLine, drawRect } from './shapes';
+import { drawArc, drawCircle, drawLine, drawRect, straight } from './shapes';
 
 export function rgb(color) {
   return `rgb(${Math.round(color.r)} ${Math.round(color.g)} ${Math.round(color.b)})`;
+}
+
+function isPlain(value) {
+  return value !== null && typeof value === 'object' && Object.getPrototypeOf(value) === Object.prototype;
+}
+
+function copy(value) {
+  if (Array.isArray(value)) return [...value];
+  if (isPlain(value)) return { ...value };
+
+  return value;
 }
 
 export class Entity {
@@ -30,14 +40,17 @@ export class Entity {
   }
 
   snapshot() {
-    return { ...this, color: { ...this.color } };
+    return Object.fromEntries(Object.entries(this).map(([key, value]) => [key, copy(value)]));
   }
 
   restore(state) {
-    const color = this.color;
+    for (const [key, from] of Object.entries(state)) {
+      const into = this[key];
 
-    Object.assign(this, state);
-    this.color = Object.assign(color, state.color);
+      if (Array.isArray(from) && Array.isArray(into)) into.splice(0, into.length, ...from);
+      else if (isPlain(from) && isPlain(into)) Object.assign(into, from);
+      else this[key] = copy(from);
+    }
   }
 }
 
@@ -46,7 +59,7 @@ export function rect(options) {
 }
 
 export function line(options) {
-  return new Entity({ ease: linear, t0: 0, t1: 1, segments: 32, ...options, draw: drawLine });
+  return new Entity({ offset: straight, t0: 0, t1: 1, segments: 32, ...options, draw: drawLine });
 }
 
 export function circle(options) {

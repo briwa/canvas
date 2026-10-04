@@ -28,7 +28,7 @@ https://cdn.jsdelivr.net/npm/@briwa.dev/canvas/dist/index.iife.js
 Layers that run forever, or have no step, don't count towards finishing. With `loop: true`, the scene starts over once the rest is done.
 
 ```sandbox=js viz 960x480 control=auto code
-const { Scene, layer, circle, rect, step, tween, move, sequence, repeat, easeInOutSine, linear, mix } = Canvas;
+const { Scene, layer, circle, rect, step, tween, move, wait, sequence, repeat, easeInOutSine, linear, mix } = Canvas;
 
 const HORIZON = 330;
 const BANDS = 6;
@@ -141,6 +141,7 @@ const scene = new Scene({
         hop(-42),
         hop(42),
         walk({ duration: 2500, dx: 330, strides: 7 }),
+        wait(2400),
         tween({ alpha: 0 }, { duration: 700 }),
       ),
     ),

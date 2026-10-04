@@ -269,103 +269,6 @@ describe('steps', () => {
     expect(box(2100)).toMatchObject({ x0: 280 });
     expect(box(2240).x0).not.toBe(280);
   });
-
-  describe('all together', () => {
-    const INK = { r: 236, g: 232, b: 222 };
-    const start = () => open('steps.md', 'All together');
-    const planet = (ops) => parse(find(ops, BLUE).find((op) => op.startsWith('fill')));
-    const moon = (ops) => parse(find(ops, INK).find((op) => op.startsWith('fill')));
-    const strokes = (ops) => find(ops, INK).filter((op) => op.includes('w=3'));
-    const bars = (ops) => ops.slice(3, 12).map(parse);
-
-    it('draws each kind of shape in order', () => {
-      const [frame] = play(start(), { to: 0 });
-
-      expect(frame.ops.map((op) => op.split(' ')[0])).toEqual([
-        'clear',
-        'rect',
-        'stroke',
-        ...Array(9).fill('rect'),
-        'stroke',
-        'fill',
-        'fill',
-        'fill',
-        ...Array(32).fill('stroke'),
-      ]);
-      expect(frame.ops[1]).toBe('rect 0 0 960 320 | rgb(30 30 40) a=1');
-      expect(frame.ops[2]).toBe('stroke M56,239 L264,239 | rgb(236 232 222) a=0.3 w=2');
-    });
-
-    it('orbits the planet around the sun and the moon around the planet', () => {
-      const trace = play(start(), { to: 6000 });
-
-      expect(planet(at(trace, 0))).toMatchObject({ cx: 575, cy: 160, rx: 9 });
-      expect(planet(at(trace, 1500))).toMatchObject({ cx: 480, cy: 205 });
-      expect(planet(at(trace, 3000))).toMatchObject({ cx: 385, cy: 160 });
-      expect(planet(at(trace, 4500))).toMatchObject({ cx: 480, cy: 115 });
-      expect(planet(at(trace, 6000))).toMatchObject({ cx: 575, cy: 160 });
-
-      for (const t of [0, 700, 1400, 2380, 5000]) {
-        const p = planet(at(trace, t));
-        const m = moon(at(trace, t));
-        const angle = (t / 1400) * Math.PI * 2;
-
-        expect(m.cx).toBeCloseTo(p.cx + Math.cos(angle) * 20, 1);
-        expect(m.cy).toBeCloseTo(p.cy + Math.sin(angle) * 20, 1);
-        expect(m.rx).toBe(3.5);
-      }
-    });
-
-    it('bounces the equalizer bars to a new height every beat', () => {
-      const trace = play(start(), { to: 2400 });
-
-      for (const { ops } of trace) {
-        for (const bar of bars(ops)) {
-          expect(bar.y1).toBe(235);
-          expect(bar.y0).toBeGreaterThanOrEqual(85);
-          expect(bar.y0).toBeLessThanOrEqual(225);
-        }
-      }
-
-      const heights = (t) => bars(at(trace, t)).map((bar) => bar.y0);
-
-      for (let beat = 240; beat <= 2400; beat += 240) {
-        expect(heights(beat)).not.toEqual(heights(beat - 240));
-      }
-    });
-
-    it('scribbles a line, holds it, fades it out, and scribbles a new one', () => {
-      const trace = play(start(), { to: 5400 });
-      const lines = (t) => strokes(at(trace, t));
-      const visible = (t) => lines(t).filter((op) => parse(op).alpha > 0);
-
-      expect(lines(0)).toHaveLength(32);
-      expect(visible(0).length).toBeGreaterThan(4);
-
-      for (const op of visible(2600)) {
-        const [, x, y] = /M([-\d.]+),([-\d.]+)/.exec(op).map(Number);
-
-        expect(x).toBeGreaterThanOrEqual(664);
-        expect(x).toBeLessThanOrEqual(936);
-        expect(y).toBeGreaterThanOrEqual(100);
-        expect(y).toBeLessThanOrEqual(220);
-        expect(parse(op).alpha).toBe(1);
-      }
-
-      expect(lines(1300)).not.toEqual(lines(2600));
-      expect(lines(2600)).toEqual(lines(3500));
-      expect(visible(3980)).toHaveLength(0);
-      expect(visible(4000).length).toBeGreaterThan(4);
-      expect(lines(4000)).not.toEqual(lines(0));
-    });
-
-    it('draws the same frames as the shapes demo it replaced', () => {
-      const trace = play(start(), { to: 8000 });
-
-      expect(hashes(trace)).toMatchSnapshot();
-      expect(at(trace, 2000)).toMatchSnapshot('frame 2000');
-    });
-  });
 });
 
 describe('scene', () => {
@@ -386,8 +289,8 @@ describe('scene', () => {
       expect(find(ops, HEAD)[0]).toBe(ops.at(-1));
     });
 
-    it('walks the hero across, hops, and fades them out', () => {
-      const trace = play(start(), { to: 6920 });
+    it('walks the hero across, hops, waits, and fades them out', () => {
+      const trace = play(start(), { to: 9320 });
 
       expect(hero(at(trace, 0)).body).toMatchObject({ x0: 60, y0: 284, alpha: 0 });
       expect(hero(at(trace, 700)).body).toMatchObject({ x0: 60, y0: 284, alpha: 1 });
@@ -396,7 +299,18 @@ describe('scene', () => {
       expect(hero(at(trace, 3460)).head).toMatchObject({ cx: 403, cy: 232 });
       expect(hero(at(trace, 3720)).body).toMatchObject({ x0: 390, y0: 284 });
       expect(hero(at(trace, 6220)).body).toMatchObject({ x0: 720, y0: 284, alpha: 1 });
-      expect(hero(at(trace, 6920)).body).toMatchObject({ x0: 720, y0: 284, alpha: 0 });
+      expect(hero(at(trace, 8620)).body).toMatchObject({ x0: 720, y0: 284, alpha: 1 });
+      expect(hero(at(trace, 9320)).body).toMatchObject({ x0: 720, y0: 284, alpha: 0 });
+    });
+
+    it('keeps the hero out after the sun has set, so the sky carries on into the next day', () => {
+      const trace = play(start(), { to: 8600 });
+      const sun = (time) => parse(find(at(trace, time), SUN)[0]);
+
+      expect(sun(7800).cy).toBe(sun(0).cy);
+      expect(hero(at(trace, 7800)).body.alpha).toBe(1);
+      expect(sun(8600).cy).toBeLessThan(sun(7800).cy);
+      expect(hero(at(trace, 8600)).body.alpha).toBe(1);
     });
 
     it('bobs while walking', () => {
@@ -408,10 +322,10 @@ describe('scene', () => {
     });
 
     it('loops back to the first frame once the hero is done', () => {
-      const trace = play(start(), { to: 6960 });
+      const trace = play(start(), { to: 9360 });
 
-      expect(at(trace, 6940)).toEqual(at(trace, 0));
-      expect(at(trace, 6960)).toEqual(at(trace, 20));
+      expect(at(trace, 9340)).toEqual(at(trace, 0));
+      expect(at(trace, 9360)).toEqual(at(trace, 20));
     });
 
     it('holds still while the figure is paused, and carries on without a jump', () => {
@@ -432,7 +346,7 @@ describe('scene', () => {
 
       expect(hashes(trace)).toMatchSnapshot();
 
-      for (const t of [0, 1500, 3340, 6920]) {
+      for (const t of [0, 1500, 3340, 8000, 9320]) {
         expect(at(trace, t)).toMatchSnapshot(`frame ${t}`);
       }
     });

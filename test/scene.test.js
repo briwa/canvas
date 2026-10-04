@@ -5,6 +5,7 @@ import { Input } from '../src/inputs';
 import { layer } from '../src/layer';
 import { linear, mix, polar } from '../src/math';
 import { Scene } from '../src/scene';
+import { drawLine, straight } from '../src/shapes';
 import {
   forever,
   move,
@@ -879,20 +880,115 @@ describe('Entity', () => {
     const color = e.color;
     const state = e.snapshot();
 
-    Object.assign(e, { x1: 50, t1: 0.2, tint: 'blue', ease: Math.sqrt });
+    Object.assign(e, { x1: 50, t1: 0.2, tint: 'blue', offset: Math.sin });
     e.color.r = 200;
 
     e.restore(state);
 
-    expect(e).toMatchObject({ x1: 5, t1: 1, tint: 'red', ease: linear });
+    expect(e).toMatchObject({ x1: 5, t1: 1, tint: 'red', offset: straight });
     expect(e.color).toBe(color);
     expect(e.style).toBe('rgb(1 0 0)');
+  });
+
+  it('keeps its own copy of array and object fields', () => {
+    const e = line({ amplitudes: [10, -20], shape: { bend: 1 } });
+    const amplitudes = e.amplitudes;
+    const state = e.snapshot();
+
+    e.amplitudes[0] = 99;
+    e.amplitudes.push(5);
+    e.shape.bend = 3;
+
+    e.restore(state);
+    expect(e.amplitudes).toEqual([10, -20]);
+    expect(e.amplitudes).toBe(amplitudes);
+    expect(e.shape).toEqual({ bend: 1 });
+
+    e.amplitudes[1] = 7;
+
+    e.restore(state);
+    expect(e.amplitudes).toEqual([10, -20]);
+  });
+
+  it('puts tweened array fields back on reset', () => {
+    const wave = line({ amplitudes: [10, -20] });
+    const scene = new Scene({
+      layers: [layer([wave], tween({ amplitudes: [0, 40] }, { duration: 100, ease: linear }))],
+    });
+
+    scene.render(0);
+    scene.render(50);
+    expect(wave.amplitudes).toEqual([5, 10]);
+
+    scene.reset();
+    expect(wave.amplitudes).toEqual([10, -20]);
   });
 
   it('only carries the fields its shape needs', () => {
     expect(rect()).not.toHaveProperty('t0');
     expect(circle()).not.toHaveProperty('startAngle');
-    expect(line()).toMatchObject({ t0: 0, t1: 1, segments: 32, ease: linear });
+    expect(line()).toMatchObject({ t0: 0, t1: 1, segments: 32, offset: straight });
+  });
+});
+
+describe('drawLine', () => {
+  function trace(entity) {
+    const points = [];
+    const ctx = {
+      beginPath() {},
+      stroke() {},
+      moveTo: (x, y) => points.push([x, y]),
+      lineTo: (x, y) => points.push([x, y]),
+    };
+
+    drawLine(ctx, entity);
+
+    return points.map(([x, y]) => [Math.round(x * 100) / 100, Math.round(y * 100) / 100]);
+  }
+
+  const hill = (t) => 10 * Math.sin(Math.PI * t);
+
+  it('draws a straight line in one stroke', () => {
+    expect(trace(line({ x0: 0, y0: 5, x1: 100, y1: 5 }))).toEqual([
+      [0, 5],
+      [100, 5],
+    ]);
+  });
+
+  it('bends a flat line, pushing a positive offset up when drawn left to right', () => {
+    expect(trace(line({ x0: 0, y0: 50, x1: 100, y1: 50, segments: 2, offset: hill }))).toEqual([
+      [0, 50],
+      [50, 40],
+      [100, 50],
+    ]);
+  });
+
+  it('bends a vertical line, pushing a positive offset right when drawn top to bottom', () => {
+    expect(trace(line({ x0: 50, y0: 0, x1: 50, y1: 100, segments: 2, offset: hill }))).toEqual([
+      [50, 0],
+      [60, 50],
+      [50, 100],
+    ]);
+  });
+
+  it('hands the line to its offset, so its fields can drive the wave', () => {
+    const wave = line({ x0: 0, x1: 100, segments: 2, amplitude: 4, offset: (t, e) => e.amplitude * Math.sin(Math.PI * t) });
+
+    expect(trace(wave)[1]).toEqual([50, -4]);
+  });
+
+  it('only draws from t0 to t1', () => {
+    expect(trace(line({ x0: 0, y0: 50, x1: 100, y1: 50, t0: 0.5, t1: 1, segments: 1, offset: hill }))).toEqual([
+      [50, 40],
+      [100, 50],
+    ]);
+  });
+
+  it('leaves a line with no length unbent', () => {
+    expect(trace(line({ x0: 5, y0: 5, x1: 5, y1: 5, segments: 1, offset: hill }))).toEqual([
+      [5, 5],
+      [5, 5],
+    ]);
   });
 });
 
