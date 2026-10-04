@@ -45,7 +45,7 @@
     "prepack": "npm run build"
   },
   "devDependencies": {
-    "@briwa.dev/sandbox": "^0.5.11",
+    "@briwa.dev/sandbox": "^0.8.5",
     "rehype-stringify": "^10.0.1",
     "remark-gfm": "^4.0.1",
     "remark-parse": "^11.0.0",
