@@ -927,7 +927,7 @@ describe('Entity', () => {
   it('only carries the fields its shape needs', () => {
     expect(rect()).not.toHaveProperty('t0');
     expect(circle()).not.toHaveProperty('startAngle');
-    expect(line()).toMatchObject({ t0: 0, t1: 1, segments: 32, offset: straight });
+    expect(line()).toMatchObject({ t0: 0, t1: 1, segments: 32, ease: linear, offset: straight });
   });
 });
 
@@ -979,6 +979,22 @@ describe('drawLine', () => {
 
   it('only draws from t0 to t1', () => {
     expect(trace(line({ x0: 0, y0: 50, x1: 100, y1: 50, t0: 0.5, t1: 1, segments: 1, offset: hill }))).toEqual([
+      [50, 40],
+      [100, 50],
+    ]);
+  });
+
+  it('eases y between the ends, keeping x even', () => {
+    expect(trace(line({ x0: 0, y0: 0, x1: 100, y1: 100, segments: 2, ease: (t) => t * t }))).toEqual([
+      [0, 0],
+      [50, 25],
+      [100, 100],
+    ]);
+  });
+
+  it('pushes an eased line sideways from the straight line between its ends', () => {
+    expect(trace(line({ x0: 0, y0: 50, x1: 100, y1: 50, segments: 2, ease: (t) => t * t, offset: hill }))).toEqual([
+      [0, 50],
       [50, 40],
       [100, 50],
     ]);

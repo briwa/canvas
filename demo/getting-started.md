@@ -41,11 +41,11 @@ Every shape sits in a box from `(x0, y0)` to `(x1, y1)`, with `color`, `alpha` a
 | --- | --- | --- |
 | `rect` | a filled box | |
 | `circle` | a filled ellipse inside the box | |
-| `line` | a line from `(x0, y0)` to `(x1, y1)`, pushed sideways by `offset`, drawn from `t0` to `t1` | `offset`, `t0`, `t1`, `segments` |
+| `line` | a line from `(x0, y0)` to `(x1, y1)`, bent by `ease` and `offset`, drawn from `t0` to `t1` | `ease`, `offset`, `t0`, `t1`, `segments` |
 | `arc` | the outline of the ellipse, from `startAngle` to `endAngle` | `startAngle`, `endAngle` |
 
 ```sandbox=js viz 640x200 code
-const { Scene, layer, Entity, rect, circle, line, arc, tween, wait, sequence } = Canvas;
+const { Scene, layer, Entity, rect, circle, line, arc, tween, wait, sequence, easeInOutSine } = Canvas;
 
 const color = { r: 224, g: 122, b: 95 };
 const box = (i) => ({ x0: 20 + i * 105, y0: 60, x1: 100 + i * 105, y1: 140 });
@@ -73,7 +73,7 @@ const scene = new Scene({
       line({ ...box(2), y0: 140, y1: 60, lineWidth: 4, color }),
     ]),
     layer([arc({ ...box(3), lineWidth: 4, endAngle: 0, color })], draw({ endAngle: Math.PI * 2 }, { endAngle: 0 })),
-    layer([line({ ...box(4), y0: 140, y1: 60, lineWidth: 4, t1: 0, offset: (t) => 24 * Math.sin(Math.PI * t), color })], draw({ t1: 1 }, { t1: 0 })),
+    layer([line({ ...box(4), y0: 140, y1: 60, lineWidth: 4, t1: 0, ease: easeInOutSine, color })], draw({ t1: 1 }, { t1: 0 })),
     layer([triangle]),
   ],
 });
@@ -88,7 +88,8 @@ loop((t) => scene.render(t));
 | field | what it is |
 | --- | --- |
 | `x0`, `y0`, `x1`, `y1` | where the line starts and ends |
-| `offset(t, line)` | pixels to push the point at `t` sideways, at a right angle to the line |
+| `ease(t)` | where the point at `t` sits between `y0` and `y1`, `linear` by default |
+| `offset(t, line)` | pixels to push the point at `t` sideways, at a right angle to the straight line |
 | `t0`, `t1` | the part of the line to draw, from 0 to 1 |
 | `segments` | how many straight pieces a bent line is drawn with, 32 by default |
 

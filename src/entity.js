@@ -1,3 +1,4 @@
+import { linear } from './math';
 import { drawArc, drawCircle, drawLine, drawRect, straight } from './shapes';
 
 export function rgb(color) {
@@ -59,7 +60,7 @@ export function rect(options) {
 }
 
 export function line(options) {
-  return new Entity({ offset: straight, t0: 0, t1: 1, segments: 32, ...options, draw: drawLine });
+  return new Entity({ ease: linear, offset: straight, t0: 0, t1: 1, segments: 32, ...options, draw: drawLine });
 }
 
 export function circle(options) {

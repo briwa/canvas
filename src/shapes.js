@@ -1,3 +1,5 @@
+import { linear } from './math';
+
 export function drawRect(ctx, entity) {
   ctx.fillRect(entity.x0, entity.y0, entity.x1 - entity.x0, entity.y1 - entity.y0);
 }
@@ -32,7 +34,7 @@ export function straight() {
 }
 
 export function drawLine(ctx, entity) {
-  const { x0, y0, t0, t1, offset, segments } = entity;
+  const { x0, y0, t0, t1, ease, offset, segments } = entity;
   const dx = entity.x1 - x0;
   const dy = entity.y1 - y0;
   const length = Math.hypot(dx, dy) || 1;
@@ -42,7 +44,7 @@ export function drawLine(ctx, entity) {
   const at = (t) => {
     const o = offset(t, entity);
 
-    return [x0 + dx * t + nx * o, y0 + dy * t + ny * o];
+    return [x0 + dx * t + nx * o, y0 + dy * ease(t) + ny * o];
   };
 
   ctx.lineWidth = entity.lineWidth;
@@ -50,7 +52,7 @@ export function drawLine(ctx, entity) {
   ctx.beginPath();
   ctx.moveTo(...at(t0));
 
-  const count = offset === straight ? 1 : segments;
+  const count = ease === linear && offset === straight ? 1 : segments;
 
   for (let i = 1; i <= count; i++) {
     ctx.lineTo(...at(t0 + ((t1 - t0) * i) / count));
