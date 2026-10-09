@@ -398,14 +398,21 @@ describe('steps', () => {
       expect(() => custom.update(10)).toThrow(/no targets/);
     });
 
-    it('must be an array', () => {
+    it('can be a single shape', () => {
       const e = rect();
+      const t = tween(e, { alpha: 0 }, { duration: 100, ease: linear });
+      const m = move(e, { x: 5 }, { duration: 100, ease: linear });
 
-      expect(() => tween(e, { alpha: 0 })).toThrow(/must be an array/);
-      expect(() => move(e, { x: 5 })).toThrow(/must be an array/);
-      expect(() => step(e, {})).toThrow(/must be an array/);
-      expect(() => forever(e, () => {})).toThrow(/must be an array/);
-      expect(() => layer(e)).toThrow(/array of children/);
+      t.begin(0);
+      m.begin(0);
+      t.update(50);
+      m.update(50);
+
+      expect(t.targets).toEqual([e]);
+      expect(e).toMatchObject({ alpha: 0.5, x0: 2.5 });
+      expect(step(e, {}).own).toEqual([e]);
+      expect(forever(e, () => {}).own).toEqual([e]);
+      expect(layer(e).targets).toEqual([e]);
     });
 
     it('are not needed for steps that do not use them', () => {

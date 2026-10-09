@@ -5,7 +5,7 @@ import { FRAME, figure, figures, find, hash, install, mount, parse, play, uninst
 
 const CORAL = { r: 224, g: 122, b: 95 };
 const BLUE = { r: 118, g: 176, b: 222 };
-const PAGES = ['getting-started.md', 'steps.md', 'scene.md', 'input.md'];
+const PAGES = ['getting-started.md', 'steps.md', 'scene.md', 'input.md', 'world.md'];
 
 beforeEach(() => {
   install({ seed: 7 });
@@ -719,5 +719,132 @@ describe('input', () => {
     expect(hashes(keyboardTrace)).toMatchSnapshot('keyboard');
     expect(at(mouseTrace, 1400)).toMatchSnapshot('mouse frame 1400');
     expect(at(keyboardTrace, 1660)).toMatchSnapshot('keyboard frame 1660');
+  });
+});
+
+describe('world', () => {
+  describe('spawn', () => {
+    const SPARK = { r: 255, g: 190, b: 112 };
+    const STAR = { r: 255, g: 236, b: 196 };
+    const start = () => open('world.md', 'spawn');
+    const meter = (ops) => parse(find(ops, SPARK).find((op) => op.startsWith('rect')));
+    const sparks = (ops) => find(ops, SPARK).filter((op) => op.startsWith('fill')).map(parse);
+    const click = (fig, x, y) => () => {
+      fig.canvas.fire('pointermove', { clientX: x, clientY: y });
+      fig.canvas.fire('pointerdown', { clientX: x, clientY: y });
+      fig.canvas.fire('pointerup', { clientX: x, clientY: y });
+    };
+
+    it('drops stars behind the hills, and removes them once they fade', () => {
+      const fig = start();
+      const trace = play(fig, { to: 6000 });
+      const stars = (t) => find(at(trace, t), STAR);
+      const hill = (t) => at(trace, t).findIndex((op) => op.includes('rgb(26 32 50)'));
+
+      expect(stars(0)).toHaveLength(0);
+      expect(stars(240)).toHaveLength(1);
+      expect(at(trace, 240).indexOf(stars(240)[0])).toBeLessThan(hill(240));
+      expect(stars(3000).length).toBeGreaterThan(4);
+      expect(stars(3000).length).toBeLessThan(9);
+      expect(meter(at(trace, 3000)).x1).toBe(16 + stars(3000).length * 6);
+      expect(stars(6000).length).toBeLessThan(9);
+    });
+
+    it('throws sparks out from a click that fade and go away', () => {
+      const fig = start();
+      const trace = play(fig, { to: 2000, onFrame: script({ 1000: click(fig, 300, 120) }) });
+
+      expect(sparks(at(trace, 980))).toHaveLength(0);
+      expect(sparks(at(trace, 1000))).toHaveLength(10);
+      expect(sparks(at(trace, 1000)).every((s) => s.cx === 300 && s.cy === 120)).toBe(true);
+
+      const spread = sparks(at(trace, 1400)).map((s) => Math.hypot(s.cx - 300, s.cy - 120));
+
+      expect(Math.min(...spread)).toBeGreaterThan(30);
+      expect(sparks(at(trace, 1400))[0].alpha).toBeLessThan(0.5);
+      expect(sparks(at(trace, 1700))).toHaveLength(0);
+    });
+  });
+
+  describe('machine', () => {
+    const SHIRT = { r: 232, g: 98, b: 76 };
+    const BRUISE = { r: 150, g: 92, b: 160 };
+    const start = () => open('world.md', 'machine');
+    const body = (ops) => parse(ops.find((op) => op.startsWith('rect') && op.includes(' 26 44 ')));
+    const state = (ops) => ops.find((op) => op.startsWith('text')).split(' ')[1];
+    const key = (fig, type, name) => () => fig.canvas.fire(type, { key: name });
+
+    it('bobs while idle, and shows its state', () => {
+      const fig = start();
+      const trace = play(fig, { to: 1200 });
+
+      expect(fig.canvas.tabIndex).toBe(0);
+      expect(state(at(trace, 0))).toBe('idle');
+      expect(body(at(trace, 0))).toMatchObject({ x0: 300, y1: 230 });
+      expect(body(at(trace, 600)).y1).toBe(227);
+      expect(body(at(trace, 1200)).y1).toBe(230);
+    });
+
+    it('hops, lands, and goes back to idle', () => {
+      const fig = start();
+      const trace = play(fig, { to: 1200, onFrame: script({ 300: key(fig, 'keydown', ' '), 400: key(fig, 'keyup', ' ') }) });
+
+      expect(state(at(trace, 300))).toBe('jump');
+      expect(body(at(trace, 300)).y1).toBe(230);
+      expect(body(at(trace, 560)).y1).toBe(152);
+      expect(state(at(trace, 820))).toBe('land');
+      expect(body(at(trace, 900)).y1).toBe(234);
+      expect(state(at(trace, 1000))).toBe('idle');
+      expect(body(at(trace, 1000)).y1).toBeCloseTo(230, 1);
+    });
+
+    it('walks while an arrow is held, and steers mid-hop', () => {
+      const fig = start();
+      const trace = play(fig, {
+        to: 2000,
+        each: 100,
+        onFrame: script({
+          200: key(fig, 'keydown', 'ArrowRight'),
+          600: key(fig, 'keydown', 'w'),
+          1000: key(fig, 'keyup', 'ArrowRight'),
+          1400: key(fig, 'keydown', 'a'),
+        }),
+      });
+
+      expect(state(at(trace, 200))).toBe('walk');
+      expect(body(at(trace, 500)).x0).toBe(366);
+      expect(state(at(trace, 600))).toBe('jump');
+      expect(body(at(trace, 900))).toMatchObject({ x0: 432 });
+      expect(body(at(trace, 1000)).x0).toBe(432);
+      expect(state(at(trace, 1200))).toBe('land');
+      expect(state(at(trace, 1300))).toBe('idle');
+      expect(state(at(trace, 1400))).toBe('walk');
+      expect(body(at(trace, 2000))).toMatchObject({ x0: 300, y1: 230 });
+    });
+
+    it('gets dizzy when an acorn lands on it, then shakes it off', () => {
+      const fig = start();
+      const trace = play(fig, { to: 5600, each: 20 });
+      const acorns = (t) => find(at(trace, t), { r: 120, g: 78, b: 42 });
+
+      expect(state(at(trace, 4500))).toBe('idle');
+      expect(state(at(trace, 4520))).toBe('dizzy');
+      expect(acorns(4520).map(parse).some((a) => a.x1 > 300 && a.x0 < 326 && a.y1 > 168)).toBe(false);
+      expect(find(at(trace, 4640), BRUISE)).toHaveLength(1);
+      expect(body(at(trace, 5000)).x0).not.toBe(300);
+      expect(state(at(trace, 5480))).toBe('idle');
+      expect(body(at(trace, 5480)).x0).toBe(300);
+      expect(find(at(trace, 5480), SHIRT)).toHaveLength(1);
+    });
+
+    it('comes down to the ground when knocked out of a hop', () => {
+      const fig = start();
+      const trace = play(fig, { to: 4600, each: 20, onFrame: script({ 4300: key(fig, 'keydown', ' ') }) });
+
+      expect(state(at(trace, 4400))).toBe('jump');
+      expect(body(at(trace, 4400)).y1).toBeLessThan(210);
+      expect(state(at(trace, 4420))).toBe('dizzy');
+      expect(body(at(trace, 4420)).y1).toBe(230);
+    });
   });
 });

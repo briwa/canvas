@@ -29,6 +29,16 @@ function remarkLocalLibrary({ bundle }) {
   };
 }
 
+function remarkDefaultControl({ control }) {
+  return (tree) => {
+    for (const node of tree.children) {
+      const figure = node.type === 'code' && node.lang?.startsWith('sandbox=') && /(^|\s)viz(=|\s|$)/.test(node.meta ?? '');
+
+      if (figure && !/(^|\s)control=/.test(node.meta)) node.meta = `${node.meta} control=${control}`;
+    }
+  };
+}
+
 function remarkHideLocalLibrary() {
   return (tree) => {
     tree.children = tree.children.filter(
@@ -37,12 +47,13 @@ function remarkHideLocalLibrary() {
   };
 }
 
-export function createRenderer({ bundle } = {}) {
+export function createRenderer({ bundle, control = 'autoplay' } = {}) {
   const processor = unified()
     .use(remarkParse)
     .use(remarkGfm)
     .use(remarkStripHtml)
     .use(remarkLocalLibrary, { bundle })
+    .use(remarkDefaultControl, { control })
     .use(remarkSandbox, { highlight: highlightCode })
     .use(remarkHideLocalLibrary)
     .use(remarkRehype, { allowDangerousHtml: true })

@@ -9,8 +9,9 @@ import gettingStarted from './getting-started.md?raw';
 import steps from './steps.md?raw';
 import scene from './scene.md?raw';
 import input from './input.md?raw';
+import world from './world.md?raw';
 
-const PAGES = { 'getting-started': gettingStarted, steps, scene, input };
+const PAGES = { 'getting-started': gettingStarted, steps, scene, input, world };
 const render = createRenderer({ bundle });
 
 mountFigures();

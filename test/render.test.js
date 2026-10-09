@@ -37,6 +37,14 @@ describe('docs renderer', () => {
     for (const doc of docs) expect(doc).toContain(`<script src="${CDN}">`);
   });
 
+  it('lets figures autoplay unless they pick their own control', async () => {
+    const markdown = ['```sandbox=js viz 100x100 code', 'loop(() => {});', '```', '', '```sandbox=js viz 100x100 control=none code', 'loop(() => {});', '```'].join('\n');
+    const html = await createRenderer()(markdown);
+
+    expect(html.match(/data-control="[^"]*"/g)).toEqual(['data-control="autoplay"', 'data-control="none"']);
+    expect(await createRenderer({ control: 'hover' })(markdown)).toContain('data-control="hover"');
+  });
+
   it('gives every figure highlighted code behind a toggle', async () => {
     const html = await createRenderer({ bundle: 'var Canvas = {};' })(page);
 

@@ -1,17 +1,15 @@
 import { Entity } from './entity';
 import { Tweener } from './tweener';
 
-function isTargets(value) {
-  if (value instanceof Entity) throw new TypeError('Targets must be an array, like [shape].');
-
-  return Array.isArray(value);
+export function isTargets(value) {
+  return value instanceof Entity || Array.isArray(value);
 }
 
-function list(targets) {
+export function list(targets) {
   return targets === undefined || targets === null ? null : [targets].flat(Infinity);
 }
 
-function end(step, time) {
+export function end(step, time) {
   const span = step.span;
 
   return span > 0 && span < Infinity ? Math.min(step.startTime + span, time) : time;

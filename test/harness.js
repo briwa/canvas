@@ -43,6 +43,10 @@ class Context {
     );
   }
 
+  fillText(text, x, y) {
+    this.ops.push(`text ${text} ${num(x)} ${num(y)} | ${this.fillStyle} a=${num(this.globalAlpha)}`);
+  }
+
   beginPath() {
     this.path = [];
   }
@@ -227,6 +231,7 @@ export function mount(block) {
     width: block.w,
     height: block.h,
     document,
+    knob: (value) => value,
     loop(fn) {
       frame = fn;
       if (block.control !== 'none') fn(block.idle || 0);

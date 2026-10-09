@@ -27,7 +27,7 @@ https://cdn.jsdelivr.net/npm/@briwa.dev/canvas/dist/index.iife.js
 
 Layers that run forever, or have no step, don't count towards finishing. With `loop: true`, the scene starts over once the rest is done.
 
-```sandbox=js viz 960x480 control=auto code
+```sandbox=js viz 960x480 code
 const { Scene, layer, circle, rect, step, tween, move, wait, sequence, repeat, easeInOutSine, linear, mix } = Canvas;
 
 const HORIZON = 330;
@@ -214,4 +214,43 @@ scene.onFinish(() => {
 });
 
 loop((t) => scene.render(t));
+```
+
+## Without a scene
+
+A scene only keeps time and calls a `Renderer`. You can use the `Renderer` yourself: change the shapes however you like, then `clear()` and `render(shapes)` each frame. The draw functions like `drawRect` also work on their own, with any context and any object that has the fields they read.
+
+```sandbox=js viz 640x240 control=default code
+const { Renderer, circle, line, drawRect, polar, mix, easeInOutSine } = Canvas;
+
+const CORAL = { r: 224, g: 122, b: 95 };
+const BLUE = { r: 118, g: 176, b: 222 };
+const center = { x: width / 2, y: 110 };
+
+const renderer = new Renderer(canvas);
+
+const dots = Array.from({ length: 6 }, () => circle({ color: { ...CORAL } }));
+const arm = line({ x0: center.x, y0: center.y, lineWidth: 2, color: BLUE });
+
+loop((t) => {
+  const turn = (t / 4000) * 360;
+  const head = polar(center, turn, 70);
+
+  arm.x1 = head.x;
+  arm.y1 = head.y;
+
+  dots.forEach((dot, i) => {
+    const p = polar(center, turn + i * 60, 70);
+    const r = 6 + 6 * easeInOutSine((Math.sin(t / 400 + i) + 1) / 2);
+
+    Object.assign(dot, { x0: p.x - r, y0: p.y - r, x1: p.x + r, y1: p.y + r });
+    Object.assign(dot.color, mix(CORAL, BLUE, i / 5));
+  });
+
+  renderer.clear();
+  renderer.render([arm, ...dots]);
+
+  renderer.ctx.fillStyle = 'rgb(118 176 222)';
+  drawRect(renderer.ctx, { x0: 40, y0: 210, x1: 40 + ((t / 4000) % 1) * (width - 80), y1: 216 });
+});
 ```
