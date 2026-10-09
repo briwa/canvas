@@ -1,6 +1,6 @@
 # Input
 
-```sandbox=external label=@briwa.dev/canvas
+```text sandbox=external label=@briwa.dev/canvas
 https://cdn.jsdelivr.net/npm/@briwa.dev/canvas/dist/index.iife.js
 ```
 
@@ -15,7 +15,7 @@ Pass inputs to the scene with `inputs: [...]`, and call `scene.destroy()` to rem
 | `down` | whether a button is held |
 | `pressed`, `released` | true only on the frame it happened |
 
-```sandbox=js viz 460x300 control=none code
+```js sandbox=canvas 460x300 control=none code
 const { Scene, layer, MouseInput, arc, circle, rect, step, forever, tween, move, until, sequence, repeat, easeInOutSine, lerp, mix } = Canvas;
 
 const HORIZON = 210;
@@ -116,7 +116,7 @@ onCleanup(() => scene.destroy());
 
 Click the figure first. Walk with ← → or A / D, hop with space, ↑ or W.
 
-```sandbox=js viz 460x300 control=none code
+```js sandbox=canvas 460x300 control=none code
 const { Scene, layer, KeyboardInput, circle, rect, forever, move, until, sequence, parallel, repeat, clamp, easeInOutSine, mix } = Canvas;
 
 const HORIZON = 210;

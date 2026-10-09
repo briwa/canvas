@@ -1,9 +1,9 @@
 import { resolve } from 'node:path';
-import { canvasBundle } from './demo/bundle.js';
+import { canvasPages } from './demo/bundle.js';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
-  plugins: [canvasBundle()],
+  plugins: [canvasPages()],
   build: {
     lib: {
       entry: resolve(import.meta.dirname, 'src/index.js'),

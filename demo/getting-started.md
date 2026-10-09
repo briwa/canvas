@@ -2,7 +2,7 @@
 
 `npm i @briwa.dev/canvas`, or:
 
-```sandbox=external label=@briwa.dev/canvas
+```text sandbox=external label=@briwa.dev/canvas
 https://cdn.jsdelivr.net/npm/@briwa.dev/canvas/dist/index.iife.js
 ```
 
@@ -10,7 +10,7 @@ Figures get `canvas`, `width`, `height` and `loop(fn)`, which calls `fn` with th
 
 A scene draws layers. A layer holds targets and a step that changes them. Steps inside a layer work on its targets, unless they name their own.
 
-```sandbox=js viz 640x200 control=default code
+```js sandbox=canvas 640x200 control=default code
 const { Scene, layer, circle, tween, sequence, easeInOutSine } = Canvas;
 
 const ball = circle({ x0: 40, y0: 80, x1: 80, y1: 120, color: { r: 224, g: 122, b: 95 } });
@@ -44,7 +44,7 @@ Every shape sits in a box from `(x0, y0)` to `(x1, y1)`, with `color`, `alpha` a
 | `line` | a line from `(x0, y0)` to `(x1, y1)`, bent by `ease` and `offset`, drawn from `t0` to `t1` | `ease`, `offset`, `t0`, `t1`, `segments` |
 | `arc` | the outline of the ellipse, from `startAngle` to `endAngle` | `startAngle`, `endAngle` |
 
-```sandbox=js viz 640x200 control=default code
+```js sandbox=canvas 640x200 control=default code
 const { Scene, layer, Entity, rect, circle, line, arc, tween, wait, sequence, easeInOutSine } = Canvas;
 
 const color = { r: 224, g: 122, b: 95 };
@@ -93,7 +93,7 @@ loop((t) => scene.render(t));
 | `t0`, `t1` | the part of the line to draw, from 0 to 1 |
 | `segments` | how many straight pieces a bent line is drawn with, 32 by default |
 
-```sandbox=js viz 640x300 code
+```js sandbox=canvas 640x300 code
 const { Scene, layer, line, tween, repeat, easeInOutSine } = Canvas;
 
 const color = { r: 224, g: 122, b: 95 };
@@ -132,7 +132,7 @@ loop((t) => scene.render(t));
 
 `mix(a, b, t)` blends two colours. `polar(origin, angle, length)` is the point `length` away from `origin` at `angle` degrees, where 0 is up.
 
-```sandbox=js viz 640x200 code
+```js sandbox=canvas 640x200 code
 const { Scene, layer, line, forever, mix, polar } = Canvas;
 
 const coral = { r: 224, g: 122, b: 95 };

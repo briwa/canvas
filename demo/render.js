@@ -3,13 +3,18 @@ import remarkParse from 'remark-parse';
 import remarkGfm from 'remark-gfm';
 import remarkRehype from 'remark-rehype';
 import rehypeStringify from 'rehype-stringify';
-import { remarkSandbox, remarkStripHtml } from '@briwa.dev/sandbox/remark';
-import { highlightCode } from '@briwa.dev/sandbox/editor';
+import { parseMeta } from '@briwa.dev/sandbox';
+import { remarkSandbox, remarkStripHtml, sandboxMarkdownPlugins } from '@briwa.dev/sandbox/remark';
+import { highlightCode } from './highlight.js';
 
 const LOCAL = 'canvas-local-build';
 
+function kind(node) {
+  return node.type === 'code' ? parseMeta(node.lang, node.meta)?.kind : undefined;
+}
+
 function isLibrary(node) {
-  return node.type === 'code' && node.lang === 'sandbox=external' && node.value.includes('@briwa.dev/canvas');
+  return kind(node) === 'external' && node.value.includes('@briwa.dev/canvas');
 }
 
 function remarkLocalLibrary({ bundle }) {
@@ -22,8 +27,8 @@ function remarkLocalLibrary({ bundle }) {
 
     tree.children.splice(index, 1, shown.children[0], {
       type: 'code',
-      lang: 'sandbox=js',
-      meta: `label=${LOCAL}`,
+      lang: 'js',
+      meta: `sandbox label=${LOCAL}`,
       value: bundle,
     });
   };
@@ -32,9 +37,7 @@ function remarkLocalLibrary({ bundle }) {
 function remarkDefaultControl({ control }) {
   return (tree) => {
     for (const node of tree.children) {
-      const figure = node.type === 'code' && node.lang?.startsWith('sandbox=') && /(^|\s)viz(=|\s|$)/.test(node.meta ?? '');
-
-      if (figure && !/(^|\s)control=/.test(node.meta)) node.meta = `${node.meta} control=${control}`;
+      if (kind(node) === 'figure' && !/(^|\s)control=/.test(node.meta ?? '')) node.meta = `${node.meta ?? ''} control=${control}`;
     }
   };
 }
@@ -48,15 +51,18 @@ function remarkHideLocalLibrary() {
 }
 
 export function createRenderer({ bundle, control = 'autoplay' } = {}) {
+  const { remarkPlugins, rehypePlugins } = sandboxMarkdownPlugins({ highlight: highlightCode });
+
   const processor = unified()
     .use(remarkParse)
     .use(remarkGfm)
     .use(remarkStripHtml)
     .use(remarkLocalLibrary, { bundle })
     .use(remarkDefaultControl, { control })
-    .use(remarkSandbox, { highlight: highlightCode })
+    .use(remarkPlugins.filter((plugin) => plugin !== remarkStripHtml))
     .use(remarkHideLocalLibrary)
     .use(remarkRehype, { allowDangerousHtml: true })
+    .use(rehypePlugins)
     .use(rehypeStringify, { allowDangerousHtml: true });
 
   return async (markdown) => String(await processor.process(markdown));

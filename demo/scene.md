@@ -1,6 +1,6 @@
 # Scene
 
-```sandbox=external label=@briwa.dev/canvas
+```text sandbox=external label=@briwa.dev/canvas
 https://cdn.jsdelivr.net/npm/@briwa.dev/canvas/dist/index.iife.js
 ```
 
@@ -27,7 +27,7 @@ https://cdn.jsdelivr.net/npm/@briwa.dev/canvas/dist/index.iife.js
 
 Layers that run forever, or have no step, don't count towards finishing. With `loop: true`, the scene starts over once the rest is done.
 
-```sandbox=js viz 960x480 code
+```js sandbox=canvas 960x480 code
 const { Scene, layer, circle, rect, step, tween, move, wait, sequence, repeat, easeInOutSine, linear, mix } = Canvas;
 
 const HORIZON = 330;
@@ -155,7 +155,7 @@ loop((t) => scene.render(t));
 
 `onFinish` fires each time the scene gets to the end, whether or not it loops.
 
-```sandbox=js viz=root 640x300 control=none code
+```js sandbox=root 640x300 control=none code
 const { Scene, layer, circle, tween, sequence, easeInOutSine } = Canvas;
 
 const canvas = document.createElement('canvas');
@@ -220,7 +220,7 @@ loop((t) => scene.render(t));
 
 A scene only keeps time and calls a `Renderer`. You can use the `Renderer` yourself: change the shapes however you like, then `clear()` and `render(shapes)` each frame. The draw functions like `drawRect` also work on their own, with any context and any object that has the fields they read.
 
-```sandbox=js viz 640x240 control=default code
+```js sandbox=canvas 640x240 control=default code
 const { Renderer, circle, line, drawRect, polar, mix, easeInOutSine } = Canvas;
 
 const CORAL = { r: 224, g: 122, b: 95 };

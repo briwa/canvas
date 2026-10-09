@@ -1,6 +1,6 @@
 # World
 
-```sandbox=external label=@briwa.dev/canvas
+```text sandbox=external label=@briwa.dev/canvas
 https://cdn.jsdelivr.net/npm/@briwa.dev/canvas/dist/index.iife.js
 ```
 
@@ -31,7 +31,7 @@ A spawned shape lives for as long as its step does. `remove` it to cut that shor
 
 Stars spawn on their own, and click to throw sparks. The bar at the bottom counts the stars and sparks in the world. Change how often stars fall and how many sparks a click throws from the figure's settings.
 
-```sandbox=js viz 640x300 control=none code
+```js sandbox=canvas 640x300 control=none code
 const { World, MouseInput, rect, circle, line, move, moveTo, tween, wait, parallel, sequence, linear, easeInOutSine, mix, polar } = Canvas;
 
 const HORIZON = 230;
@@ -119,7 +119,7 @@ It works in a world, and in a scene's layer too. It never finishes.
 
 Click the figure first. Walk with ← → or A / D, and hop with space, ↑ or W. Watch out for acorns. The figure's settings change how fast it walks, how high it hops, and how often acorns fall.
 
-```sandbox=js viz 640x300 control=none code
+```js sandbox=canvas 640x300 control=none code
 const { World, Entity, KeyboardInput, machine, rect, circle, step, forever, tween, move, wait, sequence, parallel, repeat, clamp, easeInOutSine, linear, mix } = Canvas;
 
 const HORIZON = 230;

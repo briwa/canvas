@@ -3,16 +3,7 @@ import './demo.css';
 
 import { mountFigures } from '@briwa.dev/sandbox/client';
 
-import bundle from 'virtual:canvas-bundle';
-import { createRenderer } from './render.js';
-import gettingStarted from './getting-started.md?raw';
-import steps from './steps.md?raw';
-import scene from './scene.md?raw';
-import input from './input.md?raw';
-import world from './world.md?raw';
-
-const PAGES = { 'getting-started': gettingStarted, steps, scene, input, world };
-const render = createRenderer({ bundle });
+import pages from 'virtual:canvas-pages';
 
 mountFigures();
 
@@ -22,7 +13,7 @@ const rendered = new Set();
 function pick(hash) {
   const name = hash.slice(1);
 
-  return Object.hasOwn(PAGES, name) ? name : 'getting-started';
+  return Object.hasOwn(pages, name) ? name : 'getting-started';
 }
 
 async function show(name) {
@@ -39,7 +30,7 @@ async function show(name) {
   rendered.add(name);
 
   const section = document.querySelector(`section[data-page="${name}"]`);
-  section.innerHTML = await render(PAGES[name]);
+  section.innerHTML = (await pages[name]()).default;
 }
 
 window.addEventListener('hashchange', () => show(pick(location.hash)));

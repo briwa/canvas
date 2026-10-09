@@ -1,6 +1,6 @@
 # Steps
 
-```sandbox=external label=@briwa.dev/canvas
+```text sandbox=external label=@briwa.dev/canvas
 https://cdn.jsdelivr.net/npm/@briwa.dev/canvas/dist/index.iife.js
 ```
 
@@ -8,7 +8,7 @@ https://cdn.jsdelivr.net/npm/@briwa.dev/canvas/dist/index.iife.js
 
 `tween([targets]?, to, { duration, ease, from, stagger })`
 
-```sandbox=js viz 640x220 code
+```js sandbox=canvas 640x220 code
 const { Scene, layer, circle, tween, sequence, repeat } = Canvas;
 
 const blue = { r: 118, g: 176, b: 222 };
@@ -32,7 +32,7 @@ const scene = new Scene({
 loop((t) => scene.render(t));
 ```
 
-```sandbox=js viz 960x480 code
+```js sandbox=canvas 960x480 code
 const { Scene, layer, rect, tween, sequence, linear } = Canvas;
 
 const BASE = { r: 30, g: 41, b: 59 };
@@ -100,7 +100,7 @@ loop((t) => scene.render(t));
 
 A `parallel` is done when every part that can end has ended.
 
-```sandbox=js viz 640x220 code
+```js sandbox=canvas 640x220 code
 const { Scene, layer, rect, tween, move, wait, sequence, parallel, repeat } = Canvas;
 
 const walker = rect({ x0: 180, y0: 50, x1: 220, y1: 90, color: { r: 224, g: 122, b: 95 } });
@@ -126,7 +126,7 @@ loop((t) => scene.render(t));
 
 ## until
 
-```sandbox=js viz 640x200 code
+```js sandbox=canvas 640x200 code
 const { Scene, layer, circle, tween, until, sequence, repeat } = Canvas;
 
 const eyes = [250, 390].map((x) =>
@@ -145,7 +145,7 @@ loop((t) => scene.render(t));
 
 ## forever
 
-```sandbox=js viz 640x200 code
+```js sandbox=canvas 640x200 code
 const { Scene, layer, circle, forever } = Canvas;
 
 const sun = circle({ x0: 300, y0: 80, x1: 340, y1: 120, color: { r: 224, g: 122, b: 95 } });
@@ -184,7 +184,7 @@ loop((t) => scene.render(t));
 | `s.tween(target, { startAt, duration, from, to, ease })` | schedules a tween inside the step |
 | `s.complete()` | ends the step now |
 
-```sandbox=js viz 640x200 code
+```js sandbox=canvas 640x200 code
 const { Scene, layer, rect, step, wait, sequence, repeat } = Canvas;
 
 function shake({ duration, strength }) {

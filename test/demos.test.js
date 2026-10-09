@@ -35,7 +35,7 @@ describe('every page', () => {
   for (const page of PAGES) {
     it(`${page} loads the library before its figures`, () => {
       const text = readFileSync(new URL(`../demo/${page}`, import.meta.url), 'utf8');
-      const external = text.indexOf('```sandbox=external label=@briwa.dev/canvas\nhttps://cdn.jsdelivr.net/npm/@briwa.dev/canvas/dist/index.iife.js\n```');
+      const external = text.indexOf('```text sandbox=external label=@briwa.dev/canvas\nhttps://cdn.jsdelivr.net/npm/@briwa.dev/canvas/dist/index.iife.js\n```');
 
       expect(external).toBeGreaterThan(0);
       expect(external).toBeLessThan(figures(page)[0].from);
