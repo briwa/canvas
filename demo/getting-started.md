@@ -84,6 +84,123 @@ scene.onFinish(() => reset());
 loop((t) => scene.render(t));
 ```
 
+Drag the ends and the knots of this one, and change the rest from its settings.
+
+```js sandbox=canvas 640x340 control=none code
+const { Scene, MouseInput, Entity, path, area, circle, rect, spline } = Canvas;
+
+const shape = knob('path', { options: ['path', 'area'] });
+const knots = knob(5, { min: 2, max: 12 });
+const drag = knob('across', { options: ['across', 'along'] });
+const t0 = knob(0, { min: 0, max: 1, step: 0.01 });
+const t1 = knob(1, { min: 0, max: 1, step: 0.01 });
+const base = knob(-60, { min: -160, max: 160 });
+
+const INK = { r: 224, g: 122, b: 95 };
+const BLUE = { r: 118, g: 176, b: 222 };
+const MUTED = { r: 150, g: 158, b: 168 };
+
+const saved = (globalThis.dragged ??= { x0: 80, y0: 170, x1: 560, y1: 170, along: [0, 0], across: [0, 0] });
+const resample = (values) => Array.from({ length: knots }, (_, i) => Math.round(spline(values, i / (knots - 1))));
+
+saved.along = resample(saved.along);
+saved.across = resample(saved.across);
+
+const { along, across } = saved;
+const make = shape === 'area' ? area : path;
+
+const line = make({
+  t0, t1, base, along, across,
+  segments: 96,
+  lineWidth: 4,
+  alpha: shape === 'area' ? 0.85 : 1,
+  color: INK,
+  offset: (t, e) => [spline(e.along, t), spline(e.across, t)],
+});
+
+const straight = path({ lineWidth: 1, color: MUTED });
+const pins = across.map(() => path({ lineWidth: 1, color: BLUE }));
+const dots = across.map(() => circle({ color: BLUE }));
+const ends = [rect({ color: MUTED }), rect({ color: MUTED })];
+
+const label = new Entity({
+  x0: 16,
+  y0: 324,
+  color: MUTED,
+  draw(ctx, e) {
+    ctx.font = '12px monospace';
+    ctx.fillText(e.text, e.x0, e.y0);
+  },
+});
+
+const mouse = new MouseInput();
+const scene = new Scene({ canvas, inputs: [mouse] });
+
+scene.add([straight, line, pins, dots, ends, label]);
+
+const frame = () => {
+  const dx = saved.x1 - saved.x0;
+  const dy = saved.y1 - saved.y0;
+  const length = Math.hypot(dx, dy) || 1;
+
+  return { dx, dy, ux: dx / length, uy: dy / length };
+};
+
+const knot = (i) => {
+  const { dx, dy, ux, uy } = frame();
+  const t = i / (knots - 1);
+  const bx = saved.x0 + dx * t;
+  const by = saved.y0 + dy * t;
+
+  return { bx, by, x: bx + ux * along[i] + uy * across[i], y: by + uy * along[i] - ux * across[i] };
+};
+
+const handles = () => [
+  { x: saved.x0, y: saved.y0, move: (x, y) => Object.assign(saved, { x0: x, y0: y }) },
+  { x: saved.x1, y: saved.y1, move: (x, y) => Object.assign(saved, { x1: x, y1: y }) },
+  ...across.map((_, i) => ({
+    ...knot(i),
+    move(x, y) {
+      const { ux, uy } = frame();
+      const { bx, by } = knot(i);
+
+      if (drag === 'along') along[i] = Math.round((x - bx) * ux + (y - by) * uy);
+      else across[i] = Math.round((x - bx) * uy - (y - by) * ux);
+    },
+  })),
+];
+
+let held = null;
+
+scene.onUpdate(() => {
+  if (mouse.pressed) {
+    held = handles().find((h) => Math.hypot(h.x - mouse.x, h.y - mouse.y) < 14) ?? null;
+  }
+
+  if (mouse.released || !mouse.down) held = null;
+  if (held) held.move(Math.round(mouse.x), Math.round(mouse.y));
+
+  const { x0, y0, x1, y1 } = saved;
+
+  Object.assign(line, { x0, y0, x1, y1 });
+  Object.assign(straight, { x0, y0, x1, y1 });
+
+  across.forEach((_, i) => {
+    const { bx, by, x, y } = knot(i);
+
+    Object.assign(pins[i], { x0: bx, y0: by, x1: x, y1: y });
+    Object.assign(dots[i], { x0: x - 6, y0: y - 6, x1: x + 6, y1: y + 6 });
+  });
+
+  [[x0, y0], [x1, y1]].forEach(([x, y], i) => Object.assign(ends[i], { x0: x - 6, y0: y - 6, x1: x + 6, y1: y + 6 }));
+
+  label.text = `along: [${along.join(', ')}]   across: [${across.join(', ')}]`;
+});
+
+loop((t) => scene.render(t));
+onCleanup(() => scene.destroy());
+```
+
 ## Helpers
 
 `mix(a, b, t)` blends two colours. `polar(origin, angle, length)` is the point `length` away from `origin` at `angle` degrees, where 0 is up.

@@ -5,7 +5,7 @@ import { FRAME, figure, figures, find, hash, install, mount, parse, play, uninst
 
 const CORAL = { r: 224, g: 122, b: 95 };
 const BLUE = { r: 118, g: 176, b: 222 };
-const PAGES = ['getting-started.md', 'steps.md', 'scene.md', 'machine.md', 'playground.md'];
+const PAGES = ['getting-started.md', 'steps.md', 'scene.md', 'machine.md', 'easing.md'];
 
 beforeEach(() => {
   install({ seed: 7 });
@@ -104,6 +104,31 @@ describe('getting started', () => {
     expect(fig.resets).toBe(1);
   });
 
+  it('bends the path across where a knot is dragged, and shows the knots', () => {
+    delete globalThis.dragged;
+
+    const fig = open('getting-started.md', 'Shapes', 1);
+    const point = (type, x, y) => () => fig.canvas.fire(type, { clientX: x, clientY: y });
+    const trace = play(fig, {
+      to: 300,
+      onFrame: script({
+        100: () => {
+          point('pointermove', 320, 170)();
+          point('pointerdown', 320, 170)();
+        },
+        200: point('pointermove', 320, 120),
+        300: point('pointerup', 320, 120),
+      }),
+    });
+    const label = (t) => at(trace, t).find((op) => op.startsWith('text along:'));
+
+    expect(label(0)).toContain('across: [0, 0, 0, 0, 0]');
+    expect(label(300)).toContain('across: [0, 0, 50, 0, 0]');
+    expect(find(at(trace, 300), BLUE).map(parse).find((op) => op.cx === 320)).toMatchObject({ cy: 120 });
+
+    delete globalThis.dragged;
+  });
+
   it('tells the sandbox to reset only once the shapes are done', () => {
     const fig = open('getting-started.md', 'Shapes');
 
@@ -131,34 +156,21 @@ describe('helpers', () => {
   });
 });
 
-describe('playground', () => {
-  it('bends the path across where a knot is dragged, and shows the knots', () => {
-    delete globalThis.playground;
+describe('easing', () => {
+  it('shows the speed jump where one move hands over to the next, and moves the dot with real tweens', () => {
+    const fig = open('easing.md', 'sequence');
+    const trace = play(fig, { to: 1000 });
+    const texts = at(trace, 0).filter((op) => op.startsWith('text'));
+    const dot = (t) => parse(find(at(trace, t), CORAL).find((op) => op.startsWith('fill E')));
 
-    const fig = open('playground.md', 'path');
-    const point = (type, x, y) => () => fig.canvas.fire(type, { clientX: x, clientY: y });
-    const trace = play(fig, {
-      to: 300,
-      onFrame: script({
-        100: () => {
-          point('pointermove', 320, 170)();
-          point('pointerdown', 320, 170)();
-        },
-        200: point('pointermove', 320, 120),
-        300: point('pointerup', 320, 120),
-      }),
-    });
-    const label = (t) => at(trace, t).find((op) => op.startsWith('text along:'));
-
-    expect(label(0)).toContain('across: [0, 0, 0, 0, 0]');
-    expect(label(300)).toContain('across: [0, 0, 50, 0, 0]');
-    expect(find(at(trace, 300), BLUE).map(parse).find((op) => op.cx === 320)).toMatchObject({ cy: 120 });
-
-    delete globalThis.playground;
+    expect(texts.some((op) => op.startsWith('text seam 1: 2.62 → 1.30 px/frame 40 330 |'))).toBe(true);
+    expect(texts.some((op) => op.includes('move({ x: 100 }, { duration: 5000, ease: easeOutLog }),'))).toBe(true);
+    expect(dot(0).cx).toBe(40);
+    expect(dot(1000).cx).toBe(320);
   });
 
   it('puts the dot where the easing says, against a linear one, then holds at the end', () => {
-    const fig = open('playground.md', 'easing');
+    const fig = open('easing.md', 'curves');
     const trace = play(fig, { to: 1600 });
     const dots = (t) => find(at(trace, t), CORAL).filter((op) => op.startsWith('fill E')).map(parse);
     const ghost = (t) => parse(at(trace, t).find((op) => op.startsWith('fill E') && op.includes('rgb(150 158 168)')));
