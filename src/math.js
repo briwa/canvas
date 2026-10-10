@@ -35,8 +35,8 @@ export function easeOutSine(progress) {
   return Math.sin((Math.PI * progress) / 2);
 }
 
-export function easeOutLog(progress) {
-  return Math.log1p(9 * progress) / Math.log(10);
+export function easeOutLog(progress, strength = 9) {
+  return strength ? Math.log1p(strength * progress) / Math.log1p(strength) : progress;
 }
 
 export function easeInExpo(progress) {

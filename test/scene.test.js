@@ -1070,6 +1070,16 @@ describe('math', () => {
     expect(math.easeOutLog(0.5)).toBeCloseTo(Math.log10(5.5), 10);
   });
 
+  it('starts easeOutLog steeper the stronger it is, and goes linear at 0', () => {
+    const start = (strength) => math.easeOutLog(1e-6, strength) / 1e-6;
+
+    expect(start(9)).toBeCloseTo(9 / Math.log(10), 3);
+    expect(start(6)).toBeCloseTo(6 / Math.log(7), 3);
+    expect(start(20)).toBeGreaterThan(start(9));
+    expect(math.easeOutLog(1, 6)).toBe(1);
+    expect(math.easeOutLog(0.3, 0)).toBe(0.3);
+  });
+
   it('meets in the middle with an ease in and out', () => {
     expect(math.easeInOutCubic(0.25)).toBe(1 / 16);
     expect(math.easeInOutCubic(0.5)).toBe(0.5);
