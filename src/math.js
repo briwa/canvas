@@ -39,6 +39,10 @@ export function easeOutLog(progress, strength = 9) {
   return strength ? Math.log1p(strength * progress) / Math.log1p(strength) : progress;
 }
 
+export function easeInLog(progress, strength = 9) {
+  return 1 - easeOutLog(1 - progress, strength);
+}
+
 export function easeInExpo(progress) {
   return progress === 0 ? 0 : 2 ** (10 * progress - 10);
 }

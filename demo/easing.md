@@ -12,7 +12,7 @@ A dot goes from 0 to 1 and back, `ease(progress)` sets where it is, and the mark
 const { Scene, layer, Entity, path, circle, tween, wait, sequence, repeat, forever, linear } = Canvas;
 
 const name = knob('easeInOutSine', {
-  options: ['linear', 'easeInOutSine', 'easeInOutSineInverse', 'easeInSine', 'easeOutSine', 'easeOutLog', 'easeInExpo', 'easeInOutCubic', 'easeOutBack'],
+  options: ['linear', 'easeInOutSine', 'easeInOutSineInverse', 'easeInSine', 'easeOutSine', 'easeOutLog', 'easeInLog', 'easeInExpo', 'easeInOutCubic', 'easeOutBack'],
 });
 const duration = knob(1200, { min: 200, max: 4000, step: 100 });
 const hold = knob(400, { min: 0, max: 2000, step: 100 });
@@ -109,7 +109,7 @@ Chain up to three moves, and watch the speed where one hands over to the next. T
 ```js sandbox=canvas 640x480 control=default code
 const { Scene, layer, Entity, path, circle, move, step, wait, sequence, forever } = Canvas;
 
-const EASES = ['linear', 'easeInSine', 'easeOutSine', 'easeInOutSine', 'easeOutLog', 'easeInExpo', 'easeInOutCubic', 'easeOutBack', 'easeInOutSineInverse'];
+const EASES = ['linear', 'easeInSine', 'easeOutSine', 'easeInOutSine', 'easeOutLog', 'easeInLog', 'easeInExpo', 'easeInOutCubic', 'easeOutBack', 'easeInOutSineInverse'];
 
 const distance1 = knob(100, { min: -300, max: 400, step: 10 });
 const duration1 = knob(1000, { min: 100, max: 6000, step: 100 });

@@ -1054,7 +1054,7 @@ describe('math', () => {
     expect(at(360)).toEqual([100, 90]);
   });
 
-  const EASES = ['easeInOutSine', 'easeInSine', 'easeOutSine', 'easeOutLog', 'easeInExpo', 'easeInOutCubic', 'easeOutBack'];
+  const EASES = ['easeInOutSine', 'easeInSine', 'easeOutSine', 'easeOutLog', 'easeInLog', 'easeInExpo', 'easeInOutCubic', 'easeOutBack'];
 
   it('starts every easing at 0 and ends it at 1', () => {
     for (const name of EASES) {
@@ -1078,6 +1078,17 @@ describe('math', () => {
     expect(start(20)).toBeGreaterThan(start(9));
     expect(math.easeOutLog(1, 6)).toBe(1);
     expect(math.easeOutLog(0.3, 0)).toBe(0.3);
+  });
+
+  it('mirrors easeOutLog with easeInLog, slow to start and steep at the end', () => {
+    for (const p of [0.1, 0.3, 0.5, 0.9]) {
+      expect(math.easeInLog(p)).toBeCloseTo(1 - math.easeOutLog(1 - p), 10);
+      expect(math.easeInLog(p, 4)).toBeCloseTo(1 - math.easeOutLog(1 - p, 4), 10);
+    }
+
+    expect(math.easeInLog(0.5)).toBeLessThan(0.5);
+    expect((1 - math.easeInLog(1 - 1e-6)) / 1e-6).toBeCloseTo(9 / Math.log(10), 3);
+    expect(math.easeInLog(0.3, 0)).toBeCloseTo(0.3, 10);
   });
 
   it('meets in the middle with an ease in and out', () => {
