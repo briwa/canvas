@@ -33,21 +33,24 @@ export function straight() {
   return 0;
 }
 
-export function drawLine(ctx, entity) {
-  const { x0, y0, t0, t1, ease, offset, segments } = entity;
+function bend(entity) {
+  const { x0, y0, ease, offset } = entity;
   const dx = entity.x1 - x0;
   const dy = entity.y1 - y0;
   const length = Math.hypot(dx, dy) || 1;
-  const nx = dy / length;
-  const ny = -dx / length;
+  const ux = dx / length;
+  const uy = dy / length;
 
-  const at = (t) => {
-    const o = offset(t, entity);
+  return (t, push = offset(t, entity)) => {
+    const [along, across] = Array.isArray(push) ? push : [0, push];
 
-    return [x0 + dx * t + nx * o, y0 + dy * ease(t) + ny * o];
+    return [x0 + dx * t + ux * along + uy * across, y0 + dy * ease(t) + uy * along - ux * across];
   };
+}
 
-  ctx.lineWidth = entity.lineWidth;
+function walk(ctx, entity) {
+  const { t0, t1, ease, offset, segments } = entity;
+  const at = bend(entity);
 
   ctx.beginPath();
   ctx.moveTo(...at(t0));
@@ -58,5 +61,20 @@ export function drawLine(ctx, entity) {
     ctx.lineTo(...at(t0 + ((t1 - t0) * i) / count));
   }
 
+  return at;
+}
+
+export function drawPath(ctx, entity) {
+  ctx.lineWidth = entity.lineWidth;
+
+  walk(ctx, entity);
   ctx.stroke();
+}
+
+export function drawArea(ctx, entity) {
+  const at = walk(ctx, entity);
+
+  ctx.lineTo(...at(entity.t1, entity.base));
+  ctx.lineTo(...at(entity.t0, entity.base));
+  ctx.fill();
 }

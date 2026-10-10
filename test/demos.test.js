@@ -86,18 +86,19 @@ describe('getting started', () => {
       'fill',
       'stroke',
       'stroke',
-      'stroke',
+      'fill',
       'fill',
     ]);
     expect(first[1]).toBe('rect 20 60 80 80 | rgb(224 122 95) a=1');
     expect(first[2]).toBe('fill E165,100,40,40,0,0,6.28 | rgb(224 122 95) a=1');
-    expect(first[3]).toBe('stroke M230,140 L310,60 | rgb(224 122 95) a=1 w=4');
-    expect(first[4]).toBe('stroke E375,100,40,40,0,0,0 | rgb(224 122 95) a=1 w=4');
+    expect(first[3]).toBe('stroke E270,100,40,40,0,0,0 | rgb(224 122 95) a=1 w=4');
+    expect(first[4]).toMatch(/^stroke M335,140( L335,140){32} \|/);
+    expect(first[5]).toMatch(/^fill M440,110 .* L455,82.22 .* L520,110 L520,140 L440,140 \|/);
     expect(first[6]).toBe('fill M585,60 L625,140 L545,140 | rgb(224 122 95) a=1');
 
-    expect(at(trace, 1200)[4]).toBe('stroke E375,100,40,40,0,0,6.28 | rgb(224 122 95) a=1 w=4');
-    expect(at(trace, 1200)[5]).toMatch(/^stroke M440,140( L[\d.]+,[\d.]+){32} \|/);
-    expect(at(trace, 1200)[5]).toContain('L520,60 |');
+    expect(at(trace, 1200)[3]).toBe('stroke E270,100,40,40,0,0,6.28 | rgb(224 122 95) a=1 w=4');
+    expect(at(trace, 1200)[4]).toMatch(/^stroke M335,140 L334.25,134.25( L[\d.]+,[\d.]+){31} \|/);
+    expect(at(trace, 1200)[4]).toContain('L415,60 |');
     expect(at(trace, 2000)).toEqual(at(trace, 1200));
     expect(at(trace, 3200)).toEqual(first);
     expect(fig.resets).toBe(1);

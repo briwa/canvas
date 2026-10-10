@@ -1,5 +1,5 @@
 import { linear } from './math';
-import { drawArc, drawCircle, drawLine, drawRect, straight } from './shapes';
+import { drawArc, drawArea, drawCircle, drawPath, drawRect, straight } from './shapes';
 
 export function rgb(color) {
   return `rgb(${Math.round(color.r)} ${Math.round(color.g)} ${Math.round(color.b)})`;
@@ -59,8 +59,12 @@ export function rect(options) {
   return new Entity({ ...options, draw: drawRect });
 }
 
-export function line(options) {
-  return new Entity({ ease: linear, offset: straight, t0: 0, t1: 1, segments: 32, ...options, draw: drawLine });
+export function path(options) {
+  return new Entity({ ease: linear, offset: straight, t0: 0, t1: 1, segments: 32, ...options, draw: drawPath });
+}
+
+export function area(options) {
+  return new Entity({ ease: linear, offset: straight, t0: 0, t1: 1, segments: 32, base: 0, ...options, draw: drawArea });
 }
 
 export function circle(options) {

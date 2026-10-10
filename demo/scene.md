@@ -229,7 +229,7 @@ A spawned shape lives for as long as its step does. `remove` it to cut that shor
 Stars spawn on their own, and click to throw sparks. The bar at the bottom counts the stars and sparks in the scene. Change how often stars fall and how many sparks a click throws from the figure's settings.
 
 ```js sandbox=canvas 640x300 control=none code
-const { Scene, MouseInput, rect, circle, line, move, moveTo, tween, wait, parallel, sequence, linear, easeInOutSine, mix, polar } = Canvas;
+const { Scene, MouseInput, rect, circle, path, move, moveTo, tween, wait, parallel, sequence, linear, easeInOutSine, mix, polar } = Canvas;
 
 const HORIZON = 230;
 const STAR = { r: 255, g: 236, b: 196 };
@@ -274,7 +274,7 @@ scene.every(rate, () => {
   const x = Math.random() * width - 120;
   const y = Math.random() * 90;
 
-  scene.spawn(line({ x0: x, y0: y, x1: x + 16, y1: y + 10, alpha: 0, lineWidth: 2, color: STAR }), fall);
+  scene.spawn(path({ x0: x, y0: y, x1: x + 16, y1: y + 10, alpha: 0, lineWidth: 2, color: STAR }), fall);
 });
 
 scene.onUpdate(() => {
@@ -301,7 +301,7 @@ onCleanup(() => scene.destroy());
 A scene only keeps time and calls a `Renderer`. You can use the `Renderer` yourself: change the shapes however you like, then `clear()` and `render(shapes)` each frame. The draw functions like `drawRect` also work on their own, with any context and any object that has the fields they read.
 
 ```js sandbox=canvas 640x240 control=default code
-const { Renderer, circle, line, drawRect, polar, mix, easeInOutSine } = Canvas;
+const { Renderer, circle, path, drawRect, polar, mix, easeInOutSine } = Canvas;
 
 const CORAL = { r: 224, g: 122, b: 95 };
 const BLUE = { r: 118, g: 176, b: 222 };
@@ -310,7 +310,7 @@ const center = { x: width / 2, y: 110 };
 const renderer = new Renderer(canvas);
 
 const dots = Array.from({ length: 6 }, () => circle({ color: { ...CORAL } }));
-const arm = line({ x0: center.x, y0: center.y, lineWidth: 2, color: BLUE });
+const arm = path({ x0: center.x, y0: center.y, lineWidth: 2, color: BLUE });
 
 loop((t) => {
   const turn = (t / 4000) * 360;
