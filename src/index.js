@@ -7,4 +7,4 @@ export { Scene } from './scene';
 export { Step, forever, move, moveTo, parallel, repeat, sequence, step, tween, until, wait } from './step';
 export { Tweener } from './tweener';
 export { drawArc, drawArea, drawCircle, drawPath, drawRect, straight } from './shapes';
-export { clamp, easeInOutSine, easeInOutSineInverse, lerp, linear, mix, polar, spline } from './math';
+export { clamp, easeInExpo, easeInOutCubic, easeInOutSine, easeInOutSineInverse, easeInSine, easeOutBack, easeOutLog, easeOutSine, lerp, linear, mix, polar, spline } from './math';

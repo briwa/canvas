@@ -27,6 +27,30 @@ export function easeInOutSineInverse(progress) {
   return Math.acos(1 - (2 * progress)) / Math.PI;
 }
 
+export function easeInSine(progress) {
+  return 1 - Math.cos((Math.PI * progress) / 2);
+}
+
+export function easeOutSine(progress) {
+  return Math.sin((Math.PI * progress) / 2);
+}
+
+export function easeOutLog(progress) {
+  return Math.log1p(9 * progress) / Math.log(10);
+}
+
+export function easeInExpo(progress) {
+  return progress === 0 ? 0 : 2 ** (10 * progress - 10);
+}
+
+export function easeInOutCubic(progress) {
+  return progress < 0.5 ? 4 * progress ** 3 : 1 - (2 - 2 * progress) ** 3 / 2;
+}
+
+export function easeOutBack(progress, overshoot = 1.70158) {
+  return 1 + (overshoot + 1) * (progress - 1) ** 3 + overshoot * (progress - 1) ** 2;
+}
+
 export function spline(values, t) {
   const last = values.length - 1;
 

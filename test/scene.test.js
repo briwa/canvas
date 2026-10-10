@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { Entity, area, circle, path, rect } from '../src/entity';
 import { Input } from '../src/inputs';
 import { layer } from '../src/layer';
+import * as math from '../src/math';
 import { linear, mix, polar, spline } from '../src/math';
 import { Scene } from '../src/scene';
 import { drawArea, drawPath, straight } from '../src/shapes';
@@ -1051,6 +1052,43 @@ describe('math', () => {
     expect(at(180)).toEqual([100, 110]);
     expect(at(-90)).toEqual([110, 100]);
     expect(at(360)).toEqual([100, 90]);
+  });
+
+  const EASES = ['easeInOutSine', 'easeInSine', 'easeOutSine', 'easeOutLog', 'easeInExpo', 'easeInOutCubic', 'easeOutBack'];
+
+  it('starts every easing at 0 and ends it at 1', () => {
+    for (const name of EASES) {
+      expect(math[name](0), name).toBeCloseTo(0, 10);
+      expect(math[name](1), name).toBeCloseTo(1, 10);
+    }
+  });
+
+  it('starts slow with an ease in, and fast with an ease out', () => {
+    expect(math.easeInSine(0.5)).toBeCloseTo(1 - Math.SQRT1_2, 10);
+    expect(math.easeInExpo(0.5)).toBe(1 / 32);
+    expect(math.easeOutSine(0.5)).toBeCloseTo(Math.SQRT1_2, 10);
+    expect(math.easeOutLog(0.5)).toBeCloseTo(Math.log10(5.5), 10);
+  });
+
+  it('meets in the middle with an ease in and out', () => {
+    expect(math.easeInOutCubic(0.25)).toBe(1 / 16);
+    expect(math.easeInOutCubic(0.5)).toBe(0.5);
+    expect(math.easeInOutCubic(0.75)).toBe(15 / 16);
+  });
+
+  it('overshoots 1 before settling with easeOutBack', () => {
+    const peak = Math.max(...Array.from({ length: 101 }, (_, i) => math.easeOutBack(i / 100)));
+
+    expect(peak).toBeGreaterThan(1.09);
+    expect(peak).toBeLessThan(1.11);
+  });
+
+  it('overshoots further with a bigger constant, and not at all with 0', () => {
+    const peak = (overshoot) => Math.max(...Array.from({ length: 101 }, (_, i) => math.easeOutBack(i / 100, overshoot)));
+
+    expect(peak(4)).toBeGreaterThan(peak(1.70158));
+    expect(peak(0)).toBe(1);
+    expect(math.easeOutBack(1, 4)).toBe(1);
   });
 
   it('passes a spline through each value, spread evenly from 0 to 1', () => {

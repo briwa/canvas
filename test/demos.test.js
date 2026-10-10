@@ -5,7 +5,7 @@ import { FRAME, figure, figures, find, hash, install, mount, parse, play, uninst
 
 const CORAL = { r: 224, g: 122, b: 95 };
 const BLUE = { r: 118, g: 176, b: 222 };
-const PAGES = ['getting-started.md', 'steps.md', 'scene.md', 'machine.md'];
+const PAGES = ['getting-started.md', 'steps.md', 'scene.md', 'machine.md', 'playground.md'];
 
 beforeEach(() => {
   install({ seed: 7 });
@@ -128,6 +128,47 @@ describe('helpers', () => {
     expect(hand(1500)).toBe('stroke M320,100 L384,100 | rgb(171 149 159) a=1 w=4');
     expect(hand(3000)).toBe('stroke M320,100 L320,164 | rgb(118 176 222) a=1 w=4');
     expect(hand(6000)).toBe(hand(0));
+  });
+});
+
+describe('playground', () => {
+  it('bends the path across where a knot is dragged, and shows the knots', () => {
+    delete globalThis.playground;
+
+    const fig = open('playground.md', 'path');
+    const point = (type, x, y) => () => fig.canvas.fire(type, { clientX: x, clientY: y });
+    const trace = play(fig, {
+      to: 300,
+      onFrame: script({
+        100: () => {
+          point('pointermove', 320, 170)();
+          point('pointerdown', 320, 170)();
+        },
+        200: point('pointermove', 320, 120),
+        300: point('pointerup', 320, 120),
+      }),
+    });
+    const label = (t) => at(trace, t).find((op) => op.startsWith('text along:'));
+
+    expect(label(0)).toContain('across: [0, 0, 0, 0, 0]');
+    expect(label(300)).toContain('across: [0, 0, 50, 0, 0]');
+    expect(find(at(trace, 300), BLUE).map(parse).find((op) => op.cx === 320)).toMatchObject({ cy: 120 });
+
+    delete globalThis.playground;
+  });
+
+  it('puts the dot where the easing says, against a linear one, then holds at the end', () => {
+    const fig = open('playground.md', 'easing');
+    const trace = play(fig, { to: 1600 });
+    const dots = (t) => find(at(trace, t), CORAL).filter((op) => op.startsWith('fill E')).map(parse);
+    const ghost = (t) => parse(at(trace, t).find((op) => op.startsWith('fill E') && op.includes('rgb(150 158 168)')));
+    const track = (t) => dots(t).find((d) => d.rx === 9).cx;
+
+    expect(ghost(300).cx).toBe(375);
+    expect(track(300)).toBeCloseTo(300 + 300 * (1 - Math.cos(Math.PI / 4)) / 2, 1);
+    expect(track(600)).toBe(450);
+    expect(track(1200)).toBe(600);
+    expect(track(1600)).toBe(600);
   });
 });
 
