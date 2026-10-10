@@ -7,7 +7,6 @@ import { machine } from '../src/machine';
 import { linear } from '../src/math';
 import { Scene } from '../src/scene';
 import { forever, move, sequence, tween, wait } from '../src/step';
-import { World } from '../src/world';
 
 function shift(dx, duration) {
   return move({ x: dx }, { duration, ease: linear });
@@ -181,65 +180,65 @@ describe('machine', () => {
   });
 });
 
-describe('world', () => {
+describe('adding', () => {
   it('draws what has been added, by z and then in order', () => {
     const renderer = drawn();
-    const world = new World({ renderer });
+    const scene = new Scene({ renderer });
     const a = rect();
     const b = rect({ z: -1 });
     const c = rect();
 
-    world.add([a, b]).add([c, a]);
-    world.render(0);
+    scene.add([a, b]).add([c, a]);
+    scene.render(0);
 
     expect(renderer.render).toHaveBeenCalledWith([b, a, c]);
-    expect(world.size).toBe(3);
+    expect(scene.size).toBe(3);
   });
 
   it('runs a step on what it adds, on its own clock', () => {
     const e = rect();
-    const world = new World({ renderer: drawn() });
+    const scene = new Scene({ renderer: drawn() });
 
-    world.render(1000);
-    world.add([e], shift(100, 200));
-    play(world, 1100, 1400);
+    scene.render(1000);
+    scene.add([e], shift(100, 200));
+    play(scene, 1100, 1400);
 
     expect(e.x0).toBe(100);
   });
 
   it('applies a new step straight away', () => {
     const e = rect();
-    const world = new World();
+    const scene = new Scene();
 
-    world.render(0);
-    world.add([e], tween({ alpha: 0.5 }, { duration: 100, from: { alpha: 0 } }));
+    scene.render(0);
+    scene.add([e], tween({ alpha: 0.5 }, { duration: 100, from: { alpha: 0 } }));
 
     expect(e.alpha).toBe(0);
   });
 
   it('runs a step to the end, then calls back', () => {
     const e = rect();
-    const world = new World();
+    const scene = new Scene();
     const done = vi.fn();
 
-    world.render(0);
-    world.run([e], shift(10, 100), done);
-    play(world, 0, 300);
+    scene.render(0);
+    scene.run([e], shift(10, 100), done);
+    play(scene, 0, 300);
 
     expect(done).toHaveBeenCalledTimes(1);
-    expect(done).toHaveBeenCalledWith(world);
-    expect(world.has(e)).toBe(false);
+    expect(done).toHaveBeenCalledWith(scene);
+    expect(scene.has(e)).toBe(false);
   });
 
   it('can stop a step before it ends', () => {
     const e = rect();
-    const world = new World();
+    const scene = new Scene();
 
-    world.render(0);
-    const stop = world.run([e], shift(100, 200));
-    world.render(100);
+    scene.render(0);
+    const stop = scene.run([e], shift(100, 200));
+    scene.render(100);
     stop();
-    world.render(200);
+    scene.render(200);
 
     expect(e.x0).toBe(50);
   });
@@ -247,58 +246,58 @@ describe('world', () => {
   it('stops the steps on what it removes', () => {
     const e = rect();
     const other = rect();
-    const world = new World();
+    const scene = new Scene();
 
-    world.render(0);
-    world.add([e], shift(100, 200)).add([other], shift(100, 200));
-    world.render(100);
-    world.remove([e]);
-    world.render(200);
+    scene.render(0);
+    scene.add([e], shift(100, 200)).add([other], shift(100, 200));
+    scene.render(100);
+    scene.remove([e]);
+    scene.render(200);
 
     expect(e.x0).toBe(50);
     expect(other.x0).toBe(100);
-    expect(world.has(e)).toBe(false);
+    expect(scene.has(e)).toBe(false);
   });
 
   it('calls back later, and every so often', () => {
-    const world = new World();
+    const scene = new Scene();
     const later = vi.fn();
     const often = vi.fn();
 
-    world.render(0);
-    world.after(250, later);
-    const stop = world.every(100, often);
-    play(world, 0, 500, 50);
+    scene.render(0);
+    scene.after(250, later);
+    const stop = scene.every(100, often);
+    play(scene, 0, 500, 50);
 
     expect(later).toHaveBeenCalledTimes(1);
     expect(often).toHaveBeenCalledTimes(5);
 
     stop();
-    play(world, 550, 800, 50);
+    play(scene, 550, 800, 50);
     expect(often).toHaveBeenCalledTimes(5);
   });
 
   it('catches up on calls when a frame is late', () => {
-    const world = new World();
+    const scene = new Scene();
     const often = vi.fn();
 
-    world.render(0);
-    world.every(100, often);
-    world.render(350);
+    scene.render(0);
+    scene.every(100, often);
+    scene.render(350);
 
     expect(often).toHaveBeenCalledTimes(3);
   });
 
   it('calls its update functions each frame, after the steps', () => {
     const e = rect();
-    const world = new World();
+    const scene = new Scene();
     const seen = [];
 
-    world.add([e], shift(100, 100));
-    const stop = world.onUpdate((w) => seen.push([w.dt, e.x0]));
-    play(world, 0, 100, 50);
+    scene.add([e], shift(100, 100));
+    const stop = scene.onUpdate((w) => seen.push([w.dt, e.x0]));
+    play(scene, 0, 100, 50);
     stop();
-    world.render(150);
+    scene.render(150);
 
     expect(seen).toEqual([
       [0, 0],
@@ -309,48 +308,48 @@ describe('world', () => {
 
   it('holds its clock while paused', () => {
     const e = rect();
-    const world = new World();
+    const scene = new Scene();
 
-    world.render(0);
-    world.add([e], shift(100, 200));
-    world.render(100);
-    world.pause();
-    play(world, 200, 500);
-    world.play();
-    world.render(600);
+    scene.render(0);
+    scene.add([e], shift(100, 200));
+    scene.render(100);
+    scene.pause();
+    play(scene, 200, 500);
+    scene.play();
+    scene.render(600);
 
-    expect(world.elapsed).toBe(200);
+    expect(scene.elapsed).toBe(200);
     expect(e.x0).toBe(100);
   });
 
   it('lets steps add and remove things while it runs', () => {
-    const world = new World();
+    const scene = new Scene();
     const a = rect();
     const b = rect();
 
-    world.render(0);
-    world.add([a], sequence(wait(100), forever(() => world.remove([a]).add([b], shift(10, 100)))));
-    play(world, 100, 300);
+    scene.render(0);
+    scene.add([a], sequence(wait(100), forever(() => scene.remove([a]).add([b], shift(10, 100)))));
+    play(scene, 100, 300);
 
-    expect(world.has(a)).toBe(false);
-    expect(world.has(b)).toBe(true);
+    expect(scene.has(a)).toBe(false);
+    expect(scene.has(b)).toBe(true);
     expect(b.x0).toBe(10);
   });
 
   it('takes a shape or an array of them', () => {
-    const world = new World();
+    const scene = new Scene();
     const a = rect();
     const b = rect();
 
-    world.render(0);
-    world.add(a, shift(10, 100)).add([b]);
-    play(world, 0, 100);
-    world.remove(a);
+    scene.render(0);
+    scene.add(a, shift(10, 100)).add([b]);
+    play(scene, 0, 100);
+    scene.remove(a);
 
     expect(a.x0).toBe(10);
-    expect(world.has(a)).toBe(false);
-    expect(world.has(b)).toBe(true);
-    expect(() => world.run('dot', wait(1))).toThrow('run() takes a shape or an array of them, like world.run(shape).');
+    expect(scene.has(a)).toBe(false);
+    expect(scene.has(b)).toBe(true);
+    expect(() => scene.run('dot', wait(1))).toThrow('run() takes a shape or an array of them, like scene.run(shape).');
   });
 
   it('listens to its inputs and lets them go', () => {
@@ -360,10 +359,10 @@ describe('world', () => {
     }
 
     const probe = new Probe();
-    const world = new World({ inputs: [probe] });
+    const scene = new Scene({ inputs: [probe] });
 
-    world.render(0);
-    world.destroy();
+    scene.render(0);
+    scene.destroy();
 
     expect(probe.flush).toHaveBeenCalledTimes(1);
     expect(probe.detach).toHaveBeenCalledTimes(1);
@@ -372,48 +371,80 @@ describe('world', () => {
 
 describe('spawn', () => {
   it('adds shapes for as long as their step runs', () => {
-    const world = new World();
+    const scene = new Scene();
     const a = rect();
     const done = vi.fn();
 
-    world.render(0);
-    world.spawn(a, shift(100, 200), done);
-    world.render(100);
+    scene.render(0);
+    scene.spawn(a, shift(100, 200), done);
+    scene.render(100);
 
     expect(a.x0).toBe(50);
-    expect(world.has(a)).toBe(true);
+    expect(scene.has(a)).toBe(true);
 
-    world.render(200);
+    scene.render(200);
     expect(a.x0).toBe(100);
-    expect(world.has(a)).toBe(false);
-    expect(done).toHaveBeenCalledWith(world);
+    expect(scene.has(a)).toBe(false);
+    expect(done).toHaveBeenCalledWith(scene);
   });
 
   it('can be cut short by removing the shapes', () => {
-    const world = new World();
+    const scene = new Scene();
     const a = rect();
     const done = vi.fn();
 
-    world.render(0);
-    world.spawn([a], () => shift(100, 200), done);
-    world.render(100);
-    world.remove(a);
-    world.render(200);
+    scene.render(0);
+    scene.spawn([a], () => shift(100, 200), done);
+    scene.render(100);
+    scene.remove(a);
+    scene.render(200);
 
     expect(a.x0).toBe(50);
     expect(done).not.toHaveBeenCalled();
   });
 
   it('can be stopped, leaving the shapes in', () => {
-    const world = new World();
+    const scene = new Scene();
     const a = rect();
 
-    world.render(0);
-    const stop = world.spawn(a, shift(100, 200));
+    scene.render(0);
+    const stop = scene.spawn(a, shift(100, 200));
     stop();
-    world.render(200);
+    scene.render(200);
 
-    expect(world.has(a)).toBe(true);
+    expect(scene.has(a)).toBe(true);
     expect(a.x0).toBe(0);
+  });
+});
+
+describe('reset', () => {
+  it('goes back to the first frame, keeping what was there and dropping what came after', () => {
+    const scene = new Scene();
+    const hero = rect();
+    const later = rect();
+    const ticks = vi.fn();
+
+    scene.add(hero, shift(100, 200));
+    scene.every(100, ticks);
+    scene.render(0);
+    scene.render(100);
+    scene.spawn(later, wait(1000));
+    scene.render(200);
+
+    expect(hero.x0).toBe(100);
+    expect(ticks).toHaveBeenCalledTimes(2);
+
+    scene.reset();
+
+    expect(hero.x0).toBe(0);
+    expect(scene.has(hero)).toBe(true);
+    expect(scene.has(later)).toBe(false);
+
+    scene.render(300);
+    scene.render(400);
+
+    expect(scene.elapsed).toBe(100);
+    expect(hero.x0).toBe(50);
+    expect(ticks).toHaveBeenCalledTimes(3);
   });
 });

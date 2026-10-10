@@ -43,8 +43,6 @@ export function canvasPages({ dir = import.meta.dirname } = {}) {
       if (id === `\0${LIST}`) {
         const entries = pages().map((name) => `${JSON.stringify(name)}: () => import(${JSON.stringify(PAGE + name)})`);
 
-        this.addWatchFile(dir);
-
         return `export default { ${entries.join(', ')} };`;
       }
 
@@ -61,6 +59,18 @@ export function canvasPages({ dir = import.meta.dirname } = {}) {
       const html = await createRenderer({ bundle: code })(readFileSync(file, 'utf8'));
 
       return `export default ${JSON.stringify(html)};`;
+    },
+    configureServer(server) {
+      const changed = (file) => {
+        if (!file.startsWith(dir) || !file.endsWith('.md')) return;
+
+        const list = server.moduleGraph.getModuleById(`\0${LIST}`);
+
+        if (list) server.moduleGraph.invalidateModule(list);
+        server.ws.send({ type: 'full-reload' });
+      };
+
+      server.watcher.on('add', changed).on('unlink', changed);
     },
     handleHotUpdate({ file }) {
       if (file.startsWith(SRC)) canvas = null;

@@ -68,7 +68,7 @@ describe('pages', () => {
 
     const list = await plugin.load.call(context, '\0virtual:canvas-pages');
 
-    for (const name of ['getting-started', 'steps', 'scene', 'input', 'world']) {
+    for (const name of ['getting-started', 'steps', 'scene', 'machine']) {
       expect(list).toContain(`"${name}": () => import("virtual:canvas-page/${name}")`);
     }
 

@@ -1,103 +1,8 @@
-# World
+# machine
 
 ```text sandbox=external label=@briwa.dev/canvas
 https://cdn.jsdelivr.net/npm/@briwa.dev/canvas/dist/index.iife.js
 ```
-
-A scene plays a timeline over a set of shapes that never changes. A world is for things that come and go while it runs: add and remove shapes, spawn ones that only last as long as their step, and give them steps or state machines. Steps run on the world's own clock, which stops while it's paused. A world has no timeline, so there is no `seek` or `reset`.
-
-| option | what it is |
-| --- | --- |
-| `canvas` | the `<canvas>` to draw on |
-| `inputs` | a `MouseInput` or `KeyboardInput` to listen with (see [input](#input)) |
-
-| method | what it does |
-| --- | --- |
-| `add(shapes, step?)` | draw `shapes` from now on, and run `step` on them if given |
-| `spawn(shapes, step, done?)` | add `shapes` and run `step` on them, then remove them once it ends and call `done` |
-| `remove(shapes)` | stop drawing `shapes`, and stop every step running on them |
-| `run(shapes, step, done?)` | run `step` on `shapes`, then call `done`; returns a function that stops it |
-| `after(ms, fn)` / `every(ms, fn)` | call `fn` once later, or over and over; each returns a function that stops it |
-| `onUpdate(fn)` | call `fn(world)` each frame after the steps; returns a function that stops listening |
-| `render(time)` | move to `time` (in ms) and draw |
-| `pause()` / `play()` | stop and resume the clock |
-| `destroy()` | stop listening to inputs, and stop every step |
-
-`world.dt` is the time since the last frame, and `world.elapsed` is the time on the world's clock. Shapes are drawn in the order they were added, unless they have a `z`: lower goes behind. Anywhere a step goes, a function that makes one works too.
-
-## spawn
-
-A spawned shape lives for as long as its step does. `remove` it to cut that short; its `done` isn't called then.
-
-Stars spawn on their own, and click to throw sparks. The bar at the bottom counts the stars and sparks in the world. Change how often stars fall and how many sparks a click throws from the figure's settings.
-
-```js sandbox=canvas 640x300 control=none code
-const { World, MouseInput, rect, circle, line, move, moveTo, tween, wait, parallel, sequence, linear, easeInOutSine, mix, polar } = Canvas;
-
-const HORIZON = 230;
-const STAR = { r: 255, g: 236, b: 196 };
-const SPARK = { r: 255, g: 190, b: 112 };
-
-const rate = knob(220, { min: 40, max: 800, step: 10 });
-const burst = knob(10, { min: 3, max: 30, step: 1 });
-
-const mouse = new MouseInput();
-const world = new World({ canvas, inputs: [mouse] });
-
-const sky = Array.from({ length: 5 }, (_, i) =>
-  rect({
-    x0: 0,
-    x1: width,
-    y0: (i * HORIZON) / 5,
-    y1: ((i + 1) * HORIZON) / 5 + 1,
-    color: mix({ r: 14, g: 16, b: 36 }, { r: 62, g: 46, b: 90 }, i / 4),
-  }),
-);
-
-const hills = [
-  circle({ x0: -140, x1: 360, y0: HORIZON - 64, y1: HORIZON + 300, z: 1, color: { r: 26, g: 32, b: 50 } }),
-  circle({ x0: 300, x1: 820, y0: HORIZON - 36, y1: HORIZON + 300, z: 1, color: { r: 22, g: 27, b: 42 } }),
-];
-
-const meter = rect({ x0: 16, x1: 16, y0: height - 14, y1: height - 10, z: 2, color: SPARK });
-
-world.add(sky).add(hills).add(meter);
-
-const scenery = world.size;
-
-const fall = () =>
-  parallel(
-    move({ x: 240, y: 150 }, { duration: 1500, ease: linear }),
-    sequence(tween({ alpha: 1 }, { duration: 300 }), wait(500), tween({ alpha: 0 }, { duration: 700 })),
-  );
-
-world.every(rate, () => {
-  const x = Math.random() * width - 120;
-  const y = Math.random() * 90;
-
-  world.spawn(line({ x0: x, y0: y, x1: x + 16, y1: y + 10, alpha: 0, lineWidth: 2, color: STAR }), fall);
-});
-
-world.onUpdate(() => {
-  meter.x1 = 16 + (world.size - scenery) * 6;
-
-  if (!mouse.pressed) return;
-
-  for (let i = 0; i < burst; i++) {
-    const to = polar(mouse, (i * 360) / burst + Math.random() * 20, 40 + Math.random() * 30);
-
-    world.spawn(
-      circle({ x0: mouse.x - 3, x1: mouse.x + 3, y0: mouse.y - 3, y1: mouse.y + 3, z: 2, color: SPARK }),
-      parallel(moveTo({ x: to.x - 3, y: to.y - 3 }, { duration: 600, ease: easeInOutSine }), tween({ alpha: 0 }, { duration: 600 })),
-    );
-  }
-});
-
-loop((t) => world.render(t));
-onCleanup(() => world.destroy());
-```
-
-## machine
 
 `machine(shapes?, { initial, states })` is a step that is always in one of its `states`, starting with `initial`. Each state can have:
 
@@ -115,12 +20,12 @@ onCleanup(() => world.destroy());
 | `go(name)` | go to `name` on the next frame |
 | `elapsed` | ms since it entered the state |
 
-It works in a world, and in a scene's layer too. It never finishes.
+It works anywhere a step does: in `scene.add(shapes, m)`, or as a layer's step. It never finishes.
 
 Click the figure first. Walk with ← → or A / D, and hop with space, ↑ or W. Watch out for acorns. The figure's settings change how fast it walks, how high it hops, and how often acorns fall.
 
 ```js sandbox=canvas 640x300 control=none code
-const { World, Entity, KeyboardInput, machine, rect, circle, step, forever, tween, move, wait, sequence, parallel, repeat, clamp, easeInOutSine, linear, mix } = Canvas;
+const { Scene, Entity, KeyboardInput, machine, rect, circle, step, forever, tween, move, wait, sequence, parallel, repeat, clamp, easeInOutSine, linear, mix } = Canvas;
 
 const HORIZON = 230;
 const JUMP = ['space', 'arrowup', 'w'];
@@ -136,7 +41,7 @@ const drop = knob(450, { min: 150, max: 1500, step: 10 });
 canvas.tabIndex = 0;
 
 const keyboard = new KeyboardInput({ prevent: [...JUMP, ...LEFT, ...RIGHT] });
-const world = new World({ canvas, inputs: [keyboard] });
+const scene = new Scene({ canvas, inputs: [keyboard] });
 
 const sky = Array.from({ length: 5 }, (_, i) =>
   rect({
@@ -228,28 +133,28 @@ const brain = machine({
 
 const acorns = new Set();
 
-world.add(sky).add([ground, canopy, label]).add(hero, brain);
+scene.add(sky).add([ground, canopy, label]).add(hero, brain);
 
-world.every(drop, () => {
+scene.every(drop, () => {
   const x = 20 + Math.random() * (width - 40);
 
   const acorn = circle({ x0: x - 6, x1: x + 6, y0: 14, y1: 28, color: { r: 120, g: 78, b: 42 } });
 
   acorns.add(acorn);
-  world.spawn(
+  scene.spawn(
     acorn,
     sequence(move({ y: HORIZON - 28 }, { duration: 1600, ease: (p) => p * p }), tween({ alpha: 0 }, { duration: 300 })),
     () => acorns.delete(acorn),
   );
 });
 
-world.onUpdate(() => {
+scene.onUpdate(() => {
   for (const acorn of acorns) {
     const hit = acorn.x1 > head.x0 && acorn.x0 < head.x1 && acorn.y1 > head.y0 && acorn.y0 < body.y1;
 
     if (hit && acorn.alpha === 1 && !brain.is('dizzy')) {
       acorns.delete(acorn);
-      world.remove(acorn);
+      scene.remove(acorn);
       brain.go('dizzy');
     }
   }
@@ -257,6 +162,6 @@ world.onUpdate(() => {
   label.text = brain.state;
 });
 
-loop((t) => world.render(t));
-onCleanup(() => world.destroy());
+loop((t) => scene.render(t));
+onCleanup(() => scene.destroy());
 ```

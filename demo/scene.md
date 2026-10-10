@@ -7,25 +7,31 @@ https://cdn.jsdelivr.net/npm/@briwa.dev/canvas/dist/index.iife.js
 | option | what it is |
 | --- | --- |
 | `canvas` | the `<canvas>` to draw on |
-| `layers` | drawn back to front, all running at once |
-| `inputs` | a `MouseInput` or `KeyboardInput` to listen with (see [input](#input)) |
+| `layers` | the shapes and steps it starts with, drawn back to front, all running at once |
+| `inputs` | a `MouseInput` or `KeyboardInput` to listen with, like in [spawn](#scene) and [machine](#machine) |
 | `loop` | start over once every layer that can end has ended |
-| `start` | ms into the timeline to begin at, and where looping and `reset()` go back to |
 
 | method | what it does |
 | --- | --- |
+| `add(shapes, step?)` | draw `shapes` from now on, and run `step` on them if given |
+| `spawn(shapes, step, done?)` | add `shapes` and run `step` on them, then remove them once it ends and call `done` (see [spawn](#spawn)) |
+| `remove(shapes)` | stop drawing `shapes`, and stop the steps that have nothing left to move |
+| `run(shapes, step, done?)` | run `step` on `shapes`, then call `done`; returns a function that stops it |
+| `after(ms, fn)` / `every(ms, fn)` | call `fn` once later, or over and over; each returns a function that stops it |
+| `onUpdate(fn)` | call `fn(scene)` each frame after the steps; returns a function that stops listening |
 | `render(time)` | move to `time` (in ms) and draw |
 | `pause()` / `play()` | stop and resume the clock; `scene.paused` says which |
-| `reset()` | put every target back how it started and start the clock again |
-| `seek(time)` | jump to `time` ms into the timeline on the next frame |
+| `reset()` | go back to how the scene was on its first frame: those shapes as they were, their steps from the start, and anything added since gone |
 | `onFinish(fn)` | call `fn` each time the scene finishes; returns a function that stops listening |
-| `destroy()` | stop listening to inputs |
+| `destroy()` | stop listening to inputs, and stop every step |
+
+`scene.dt` is the time since the last frame, and `scene.elapsed` is the time on the scene's clock, which stops while it's paused. Shapes are drawn in the order they were added, unless they have a `z`: lower goes behind. Anywhere a step goes, a function that makes one works too.
 
 `layer(children, step?)` draws its children in order, which can be shapes or other layers. Its step works on every shape inside it, unless a step names its own targets. A layer without a step just draws.
 
 ## Finishing and looping
 
-Layers that run forever, or have no step, don't count towards finishing. With `loop: true`, the scene starts over once the rest is done.
+Layers that run forever, or have no step, don't count towards finishing, and neither do steps added later. With `loop: true`, the scene starts over once the rest is done.
 
 ```js sandbox=canvas 960x480 code
 const { Scene, layer, circle, rect, step, tween, move, wait, sequence, repeat, easeInOutSine, linear, mix } = Canvas;
@@ -214,6 +220,80 @@ scene.onFinish(() => {
 });
 
 loop((t) => scene.render(t));
+```
+
+## spawn
+
+A spawned shape lives for as long as its step does. `remove` it to cut that short; its `done` isn't called then.
+
+Stars spawn on their own, and click to throw sparks. The bar at the bottom counts the stars and sparks in the scene. Change how often stars fall and how many sparks a click throws from the figure's settings.
+
+```js sandbox=canvas 640x300 control=none code
+const { Scene, MouseInput, rect, circle, line, move, moveTo, tween, wait, parallel, sequence, linear, easeInOutSine, mix, polar } = Canvas;
+
+const HORIZON = 230;
+const STAR = { r: 255, g: 236, b: 196 };
+const SPARK = { r: 255, g: 190, b: 112 };
+
+const rate = knob(220, { min: 40, max: 800, step: 10 });
+const burst = knob(10, { min: 3, max: 30, step: 1 });
+
+const mouse = new MouseInput();
+const scene = new Scene({ canvas, inputs: [mouse] });
+
+const sky = Array.from({ length: 5 }, (_, i) =>
+  rect({
+    x0: 0,
+    x1: width,
+    y0: (i * HORIZON) / 5,
+    y1: ((i + 1) * HORIZON) / 5 + 1,
+    color: mix({ r: 14, g: 16, b: 36 }, { r: 62, g: 46, b: 90 }, i / 4),
+  }),
+);
+
+const ground = rect({ x0: 0, x1: width, y0: HORIZON, y1: height, z: 1, color: { r: 22, g: 27, b: 42 } });
+
+const hills = [
+  circle({ x0: -140, x1: 360, y0: HORIZON - 64, y1: HORIZON + 300, z: 1, color: { r: 26, g: 32, b: 50 } }),
+  circle({ x0: 300, x1: 820, y0: HORIZON - 36, y1: HORIZON + 300, z: 1, color: { r: 22, g: 27, b: 42 } }),
+];
+
+const meter = rect({ x0: 16, x1: 16, y0: height - 14, y1: height - 10, z: 2, color: SPARK });
+
+scene.add(sky).add(ground).add(hills).add(meter);
+
+const scenery = scene.size;
+
+const fall = () =>
+  parallel(
+    move({ x: 240, y: 150 }, { duration: 1500, ease: linear }),
+    sequence(tween({ alpha: 1 }, { duration: 300 }), wait(500), tween({ alpha: 0 }, { duration: 700 })),
+  );
+
+scene.every(rate, () => {
+  const x = Math.random() * width - 120;
+  const y = Math.random() * 90;
+
+  scene.spawn(line({ x0: x, y0: y, x1: x + 16, y1: y + 10, alpha: 0, lineWidth: 2, color: STAR }), fall);
+});
+
+scene.onUpdate(() => {
+  meter.x1 = 16 + (scene.size - scenery) * 6;
+
+  if (!mouse.pressed) return;
+
+  for (let i = 0; i < burst; i++) {
+    const to = polar(mouse, (i * 360) / burst + Math.random() * 20, 40 + Math.random() * 30);
+
+    scene.spawn(
+      circle({ x0: mouse.x - 3, x1: mouse.x + 3, y0: mouse.y - 3, y1: mouse.y + 3, z: 2, color: SPARK }),
+      parallel(moveTo({ x: to.x - 3, y: to.y - 3 }, { duration: 600, ease: easeInOutSine }), tween({ alpha: 0 }, { duration: 600 })),
+    );
+  }
+});
+
+loop((t) => scene.render(t));
+onCleanup(() => scene.destroy());
 ```
 
 ## Without a scene
