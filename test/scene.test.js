@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { Entity, area, circle, path, rect } from '../src/entity';
 import { Input } from '../src/inputs';
 import { layer } from '../src/layer';
-import { linear, mix, polar } from '../src/math';
+import { linear, mix, polar, spline } from '../src/math';
 import { Scene } from '../src/scene';
 import { drawArea, drawPath, straight } from '../src/shapes';
 import {
@@ -1051,5 +1051,26 @@ describe('math', () => {
     expect(at(180)).toEqual([100, 110]);
     expect(at(-90)).toEqual([110, 100]);
     expect(at(360)).toEqual([100, 90]);
+  });
+
+  it('passes a spline through each value, spread evenly from 0 to 1', () => {
+    const values = [0, 50, -30, 40, 0];
+
+    expect([0, 0.25, 0.5, 0.75, 1].map((t) => spline(values, t))).toEqual(values);
+  });
+
+  it('curves a spline between values instead of joining them straight', () => {
+    expect(spline([0, 10, 0], 0.25)).toBe(6.25);
+    expect(spline([0, 10], 0.5)).toBe(5);
+  });
+
+  it('holds a spline at its ends outside 0 to 1', () => {
+    expect(spline([3, 10], -1)).toBe(3);
+    expect(spline([3, 10], 2)).toBe(10);
+  });
+
+  it('gives a flat spline for one value, and 0 for none', () => {
+    expect(spline([7], 0.4)).toBe(7);
+    expect(spline([], 0.4)).toBe(0);
   });
 });

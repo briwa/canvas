@@ -97,7 +97,7 @@ describe('getting started', () => {
     expect(first[6]).toBe('fill M585,60 L625,140 L545,140 | rgb(224 122 95) a=1');
 
     expect(at(trace, 1200)[3]).toBe('stroke E270,100,40,40,0,0,6.28 | rgb(224 122 95) a=1 w=4');
-    expect(at(trace, 1200)[4]).toMatch(/^stroke M335,140 L334.25,134.25( L[\d.]+,[\d.]+){31} \|/);
+    expect(at(trace, 1200)[4]).toMatch(/^stroke M335,140 L335.85,135.85( L[\d.]+,[\d.]+){31} \|/);
     expect(at(trace, 1200)[4]).toContain('L415,60 |');
     expect(at(trace, 2000)).toEqual(at(trace, 1200));
     expect(at(trace, 3200)).toEqual(first);

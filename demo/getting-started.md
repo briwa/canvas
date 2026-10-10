@@ -45,10 +45,10 @@ Every shape sits in a box from `(x0, y0)` to `(x1, y1)`, with `color`, `alpha` a
 | `path` | a line from `(x0, y0)` to `(x1, y1)`, bent by `offset` and drawn from `t0` to `t1` | `offset`, `ease`, `t0`, `t1`, `segments` |
 | `area` | a `path` filled to its straight line, moved `base` pixels | everything `path` takes, and `base` |
 
-`offset(t, shape)` returns the pixels to push the point at `t` sideways, or `[along, across]` to push it along the line too.
+`offset(t, shape)` returns the pixels to push the point at `t` sideways, or `[along, across]` to push it along the line too. `spline(values, t)` gives a smooth curve through evenly spaced values, which makes a handy `offset`.
 
 ```js sandbox=canvas 640x200 control=default code
-const { Scene, layer, Entity, rect, circle, arc, path, area, tween, wait, sequence } = Canvas;
+const { Scene, layer, Entity, rect, circle, arc, path, area, spline, tween, wait, sequence } = Canvas;
 
 const color = { r: 224, g: 122, b: 95 };
 const box = (i) => ({ x0: 20 + i * 105, y0: 60, x1: 100 + i * 105, y1: 140 });
@@ -67,7 +67,6 @@ const triangle = new Entity({
   },
 });
 
-const wave = (t) => 12 * Math.sin(Math.PI * 4 * t);
 const hill = (t) => 50 * Math.sin(Math.PI * t);
 
 const scene = new Scene({
@@ -75,7 +74,7 @@ const scene = new Scene({
   layers: [
     layer([rect({ ...box(0), color }), circle({ ...box(1), color })]),
     layer([arc({ ...box(2), lineWidth: 4, endAngle: 0, color })], draw({ endAngle: Math.PI * 2 }, { endAngle: 0 })),
-    layer([path({ ...box(3), y0: 140, y1: 60, lineWidth: 4, t1: 0, offset: wave, color })], draw({ t1: 1 }, { t1: 0 })),
+    layer([path({ ...box(3), y0: 140, y1: 60, lineWidth: 4, t1: 0, knots: [0, 16, -16, 16, 0], offset: (t, e) => spline(e.knots, t), color })], draw({ t1: 1 }, { t1: 0 })),
     layer([area({ ...box(4), y0: 110, y1: 110, offset: hill, base: -30, color }), triangle]),
   ],
 });
