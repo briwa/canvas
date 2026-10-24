@@ -4,164 +4,48 @@
 https://cdn.jsdelivr.net/npm/@briwa.dev/canvas/dist/index.iife.js
 ```
 
-| option | what it is |
-| --- | --- |
-| `canvas` | the `<canvas>` to draw on |
-| `layers` | the shapes and steps it starts with, drawn back to front, all running at once |
-| `inputs` | a `MouseInput` or `KeyboardInput` to listen with, like in [spawn](#scene) and [machine](#machine) |
-| `loop` | start over once every layer that can end has ended |
+## Scene
 
-| method | what it does |
-| --- | --- |
-| `add(shapes, step?)` | draw `shapes` from now on, and run `step` on them if given |
-| `spawn(shapes, step, done?)` | add `shapes` and run `step` on them, then remove them once it ends and call `done` (see [spawn](#spawn)) |
-| `remove(shapes)` | stop drawing `shapes`, and stop the steps that have nothing left to move |
-| `run(shapes, step, done?)` | run `step` on `shapes`, then call `done`; returns a function that stops it |
-| `after(ms, fn)` / `every(ms, fn)` | call `fn` once later, or over and over; each returns a function that stops it |
-| `onUpdate(fn)` | call `fn(scene)` each frame after the steps; returns a function that stops listening |
-| `render(time)` | move to `time` (in ms) and draw |
-| `pause()` / `play()` | stop and resume the clock; `scene.paused` says which |
-| `reset()` | go back to how the scene was on its first frame: those shapes as they were, their steps from the start, and anything added since gone |
-| `onFinish(fn)` | call `fn` each time the scene finishes; returns a function that stops listening |
-| `destroy()` | stop listening to inputs, and stop every step |
+`new Scene(options)` → `Scene`
 
-`scene.dt` is the time since the last frame, and `scene.elapsed` is the time on the scene's clock, which stops while it's paused. Shapes are drawn in the order they were added, unless they have a `z`: lower goes behind. Anywhere a step goes, a function that makes one works too.
+Keeps time, runs steps, and draws shapes.
 
-`layer(children, step?)` draws its children in order, which can be shapes or other layers. Its step works on every shape inside it, unless a step names its own targets. A layer without a step just draws.
+| option | type | default | description |
+| --- | --- | --- | --- |
+| `canvas` | `HTMLCanvasElement` | | Canvas to draw on. |
+| `renderer` | `Renderer` | `new Renderer(canvas)` | Draws the shapes. |
+| `layers` | `Layer \| Layer[]` | `[]` | Starting shapes and steps, drawn back to front. |
+| `inputs` | `Input \| Input[]` | `[]` | Inputs to attach to the canvas. |
+| `loop` | `boolean` | `false` | Start over once every layer that can end has ended. |
 
-## Finishing and looping
+| property | type | description |
+| --- | --- | --- |
+| `elapsed` | `number` | Ms on the scene's clock. Stops while paused. |
+| `dt` | `number` | Ms since the last frame. |
+| `paused` | `boolean` | Whether the clock is stopped. |
+| `loop` | `boolean` | Same as the option. Can be changed. |
+| `size` | `number` | Number of shapes drawn. |
+| `finished` | `boolean` | Whether every layer that can end has ended. |
 
-Layers that run forever, or have no step, don't count towards finishing, and neither do steps added later. With `loop: true`, the scene starts over once the rest is done.
+| method | returns | description |
+| --- | --- | --- |
+| `add(shapes, step?)` | `this` | Draws `shapes`, and runs `step` on them. |
+| `spawn(shapes, step, done?)` | `() => void` | Adds `shapes`, runs `step`, then removes them and calls `done`. Returns a stop function. |
+| `remove(shapes)` | `this` | Stops drawing `shapes`, and stops steps with nothing left to move. |
+| `run(shapes, step, done?)` | `() => void` | Runs `step` on `shapes`, then calls `done`. Returns a stop function. |
+| `has(shape)` | `boolean` | Whether `shape` is drawn. |
+| `after(ms, fn)` | `() => void` | Calls `fn` once after `ms`. Returns a stop function. |
+| `every(ms, fn)` | `() => void` | Calls `fn` every `ms`. Returns a stop function. |
+| `onUpdate(fn)` | `() => void` | Calls `fn(scene)` each frame after the steps. Returns an unsubscribe function. |
+| `onFinish(fn)` | `() => void` | Calls `fn(scene)` each time the scene finishes. Returns an unsubscribe function. |
+| `render(time)` | `this` | Moves to `time` (ms) and draws. |
+| `pause()` / `play()` | `this` | Stops or resumes the clock. |
+| `reset()` | `this` | Goes back to the first frame, removing anything added since. |
+| `destroy()` | `this` | Detaches inputs and stops every step. |
 
-```js sandbox=canvas 960x480 code
-const { Scene, layer, circle, rect, step, tween, move, wait, sequence, repeat, easeInOutSine, linear, mix } = Canvas;
+`step` can also be a function that returns a step. Layers that run forever don't count towards finishing.
 
-const HORIZON = 330;
-const BANDS = 6;
-const SUN = 34;
-
-const DUSK = { top: { r: 38, g: 32, b: 62 }, low: { r: 216, g: 118, b: 82 } };
-const DAWN = { top: { r: 46, g: 56, b: 96 }, low: { r: 196, g: 122, b: 132 } };
-const DAY = { top: { r: 78, g: 140, b: 206 }, low: { r: 190, g: 218, b: 238 } };
-
-function walk({ duration, dx, strides, lift = 7 }) {
-  const beats = strides * 2;
-  const span = duration / beats;
-
-  return step({
-    duration,
-    start(s) {
-      for (const part of s.targets) {
-        s.tween(part, { startAt: 0, duration, ease: linear, to: { x0: part.x0 + dx, x1: part.x1 + dx } });
-
-        const { y0, y1 } = part;
-
-        for (let i = 0; i < beats; i++) {
-          const up = i % 2 === 0;
-
-          s.tween(part, {
-            startAt: i * span,
-            duration: span,
-            ease: easeInOutSine,
-            from: { y0: up ? y0 : y0 - lift, y1: up ? y1 : y1 - lift },
-            to: { y0: up ? y0 - lift : y0, y1: up ? y1 - lift : y1 },
-          });
-        }
-      }
-    },
-  });
-}
-
-function tree(x, scale) {
-  const trunk = rect({
-    x0: x - (13 * scale) / 2,
-    x1: x + (13 * scale) / 2,
-    y0: HORIZON - 74 * scale,
-    y1: HORIZON,
-    color: { r: 54, g: 40, b: 34 },
-  });
-
-  const canopy = circle({
-    x0: x - (66 * scale) / 2,
-    x1: x + (66 * scale) / 2,
-    y0: HORIZON - 74 * scale - 60 * scale + 14 * scale,
-    y1: HORIZON - 74 * scale + 14 * scale,
-    color: { r: 46, g: 98, b: 64 },
-  });
-
-  return { trunk, canopy };
-}
-
-const bands = Array.from({ length: BANDS }, (_, i) =>
-  rect({
-    x0: 0,
-    x1: width,
-    y0: (i * HORIZON) / BANDS,
-    y1: ((i + 1) * HORIZON) / BANDS + 1,
-    color: mix(DUSK.top, DUSK.low, i / (BANDS - 1)),
-  }),
-);
-
-const sun = circle({ x0: 664, x1: 664 + SUN, y0: HORIZON + 26, y1: HORIZON + 26 + SUN, color: { r: 250, g: 226, b: 168 } });
-const ground = rect({ x0: 0, x1: width, y0: HORIZON, y1: height, color: { r: 34, g: 50, b: 42 } });
-
-const trees = [tree(120, 1), tree(310, 0.8), tree(620, 1.1), tree(848, 0.9)];
-const trunks = trees.map((t) => t.trunk);
-const canopies = trees.map((t) => t.canopy);
-
-const body = rect({ x0: 60, x1: 86, y0: HORIZON - 46, y1: HORIZON, alpha: 0, color: { r: 232, g: 98, b: 76 } });
-const head = circle({ x0: 64, x1: 82, y0: HORIZON - 66, y1: HORIZON - 46, alpha: 0, color: { r: 246, g: 208, b: 178 } });
-const hero = [body, head];
-
-const skyTo = ({ top, low }, duration) =>
-  tween((_, i) => ({ color: mix(top, low, i / (BANDS - 1)) }), { duration, ease: linear });
-
-const sunTo = (y0, duration, ease) => tween({ y0, y1: y0 + SUN }, { duration, ease });
-
-const sway = (x) => move({ x }, { duration: 1300, ease: easeInOutSine });
-
-const hop = (y) => move({ y }, { duration: 260, ease: easeInOutSine });
-
-const scene = new Scene({
-  canvas,
-  loop: true,
-  layers: [
-    layer(bands, repeat(sequence(skyTo(DAWN, 2200), skyTo(DAY, 2800), skyTo(DUSK, 2800)))),
-    layer(
-      [sun],
-      repeat(
-        sequence(
-          sunTo(HORIZON - 4, 2200, linear),
-          sunTo(68, 2800, easeInOutSine),
-          sunTo(HORIZON + 26, 2800, easeInOutSine),
-        ),
-      ),
-    ),
-    layer([ground, trunks]),
-    layer(canopies, repeat(sequence(sway(7), sway(-7)))),
-    layer(
-      hero,
-      sequence(
-        tween({ alpha: 1 }, { duration: 700 }),
-        walk({ duration: 2500, dx: 330, strides: 7 }),
-        hop(-42),
-        hop(42),
-        walk({ duration: 2500, dx: 330, strides: 7 }),
-        wait(2400),
-        tween({ alpha: 0 }, { duration: 700 }),
-      ),
-    ),
-  ],
-});
-
-loop((t) => scene.render(t));
-```
-
-## Your own controls
-
-`onFinish` fires each time the scene gets to the end, whether or not it loops.
-
-```js sandbox=root 640x300 control=none code
+```js sandbox=root 640x300 code
 const { Scene, layer, circle, tween, sequence, easeInOutSine } = Canvas;
 
 const canvas = document.createElement('canvas');
@@ -222,13 +106,9 @@ scene.onFinish(() => {
 loop((t) => scene.render(t));
 ```
 
-## spawn
+Stars `spawn` on their own; click to throw sparks.
 
-A spawned shape lives for as long as its step does. `remove` it to cut that short; its `done` isn't called then.
-
-Stars spawn on their own, and click to throw sparks. The bar at the bottom counts the stars and sparks in the scene. Change how often stars fall and how many sparks a click throws from the figure's settings.
-
-```js sandbox=canvas 640x300 control=none code
+```js sandbox=canvas 640x300 code
 const { Scene, MouseInput, rect, circle, path, move, moveTo, tween, wait, parallel, sequence, linear, easeInOutSine, mix, polar } = Canvas;
 
 const HORIZON = 230;
@@ -296,41 +176,17 @@ loop((t) => scene.render(t));
 onCleanup(() => scene.destroy());
 ```
 
-## Without a scene
+## layer
 
-A scene only keeps time and calls a `Renderer`. You can use the `Renderer` yourself: change the shapes however you like, then `clear()` and `render(shapes)` each frame. The draw functions like `drawRect` also work on their own, with any context and any object that has the fields they read.
+`layer(children, step?)` → `Layer`
 
-```js sandbox=canvas 640x240 control=default code
-const { Renderer, circle, path, drawRect, polar, mix, easeInOutSine } = Canvas;
+Groups shapes, and runs a step on them.
 
-const CORAL = { r: 224, g: 122, b: 95 };
-const BLUE = { r: 118, g: 176, b: 222 };
-const center = { x: width / 2, y: 110 };
+| parameter | type | default | description |
+| --- | --- | --- | --- |
+| `children` | `Entity \| Layer \| Array` | required | Shapes or layers, drawn in order. |
+| `step` | `Step` | | Runs on every shape inside, unless it names its own targets. |
 
-const renderer = new Renderer(canvas);
-
-const dots = Array.from({ length: 6 }, () => circle({ color: { ...CORAL } }));
-const arm = path({ x0: center.x, y0: center.y, lineWidth: 2, color: BLUE });
-
-loop((t) => {
-  const turn = (t / 4000) * 360;
-  const head = polar(center, turn, 70);
-
-  arm.x1 = head.x;
-  arm.y1 = head.y;
-
-  dots.forEach((dot, i) => {
-    const p = polar(center, turn + i * 60, 70);
-    const r = 6 + 6 * easeInOutSine((Math.sin(t / 400 + i) + 1) / 2);
-
-    Object.assign(dot, { x0: p.x - r, y0: p.y - r, x1: p.x + r, y1: p.y + r });
-    Object.assign(dot.color, mix(CORAL, BLUE, i / 5));
-  });
-
-  renderer.clear();
-  renderer.render([arm, ...dots]);
-
-  renderer.ctx.fillStyle = 'rgb(118 176 222)';
-  drawRect(renderer.ctx, { x0: 40, y0: 210, x1: 40 + ((t / 4000) % 1) * (width - 80), y1: 216 });
-});
-```
+| returns | |
+| --- | --- |
+| `Layer` | A step that ends when its step and child layers do. Without a step, it only draws. |

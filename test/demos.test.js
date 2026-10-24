@@ -5,7 +5,7 @@ import { FRAME, figure, figures, find, hash, install, mount, parse, play, uninst
 
 const CORAL = { r: 224, g: 122, b: 95 };
 const BLUE = { r: 118, g: 176, b: 222 };
-const PAGES = ['getting-started.md', 'steps.md', 'scene.md', 'machine.md', 'easing.md'];
+const PAGES = ['getting-started.md', 'scene.md', 'shapes.md', 'steps.md', 'machine.md', 'inputs.md', 'rendering.md', 'math.md', 'demo.md'];
 
 beforeEach(() => {
   install({ seed: 7 });
@@ -58,7 +58,7 @@ describe('every page', () => {
 
 describe('getting started', () => {
   it('bounces the ball there and back once, then tells the sandbox to reset', () => {
-    const fig = open('getting-started.md', 'Getting started');
+    const fig = open('getting-started.md', 'Usage');
     const trace = play(fig, {
       to: 2400,
       onFrame: (t) => expect(fig.resets).toBe(0),
@@ -76,7 +76,7 @@ describe('getting started', () => {
   });
 
   it('draws each kind of shape, and a custom one', () => {
-    const fig = open('getting-started.md', 'Shapes');
+    const fig = open('shapes.md', 'Shapes');
     const trace = play(fig, { to: 3200 });
     const first = at(trace, 0);
 
@@ -107,7 +107,7 @@ describe('getting started', () => {
   it('bends the path across where a knot is dragged, and shows the knots', () => {
     delete globalThis.dragged;
 
-    const fig = open('getting-started.md', 'Shapes', 1);
+    const fig = open('shapes.md', 'path');
     const point = (type, x, y) => () => fig.canvas.fire(type, { clientX: x, clientY: y });
     const trace = play(fig, {
       to: 300,
@@ -130,7 +130,7 @@ describe('getting started', () => {
   });
 
   it('tells the sandbox to reset only once the shapes are done', () => {
-    const fig = open('getting-started.md', 'Shapes');
+    const fig = open('shapes.md', 'Shapes');
 
     play(fig, { to: 3180 });
     expect(fig.resets).toBe(0);
@@ -142,7 +142,7 @@ describe('getting started', () => {
 
 describe('helpers', () => {
   it('turns the hand anticlockwise from 12, blending its colour over a turn', () => {
-    const fig = open('getting-started.md', 'Helpers');
+    const fig = open('math.md', 'polar');
     const trace = play(fig, { to: 6000 });
     const hand = (t) => at(trace, t).at(-1);
 
@@ -158,7 +158,7 @@ describe('helpers', () => {
 
 describe('easing', () => {
   it('shows the speed jump where one move hands over to the next, and moves the dot with real tweens', () => {
-    const fig = open('easing.md', 'sequence');
+    const fig = open('demo.md', 'Easing sequence');
     const trace = play(fig, { to: 1000 });
     const texts = at(trace, 0).filter((op) => op.startsWith('text'));
     const dot = (t) => parse(find(at(trace, t), CORAL).find((op) => op.startsWith('fill E')));
@@ -170,7 +170,7 @@ describe('easing', () => {
   });
 
   it('puts the dot where the easing says, against a linear one, then holds at the end', () => {
-    const fig = open('easing.md', 'curves');
+    const fig = open('demo.md', 'Easing curves');
     const trace = play(fig, { to: 1600 });
     const dots = (t) => find(at(trace, t), CORAL).filter((op) => op.startsWith('fill E')).map(parse);
     const ghost = (t) => parse(at(trace, t).find((op) => op.startsWith('fill E') && op.includes('rgb(150 158 168)')));
@@ -262,7 +262,7 @@ describe('steps', () => {
   });
 
   it('walks one square round in a sequence while the other blinks in parallel', () => {
-    const fig = open('steps.md', 'move, sequence, parallel, repeat, wait');
+    const fig = open('steps.md', 'parallel');
     const trace = play(fig, { to: 2800 });
     const walker = (t) => parse(find(at(trace, t), CORAL)[0]);
     const blinker = (t) => parse(find(at(trace, t), BLUE)[0]);
@@ -312,7 +312,7 @@ describe('steps', () => {
   });
 
   it('shakes the box and settles it back where it was', () => {
-    const fig = open('steps.md', 'Your own steps');
+    const fig = open('steps.md', 'step');
     const trace = play(fig, { to: 3000 });
     const box = (t) => parse(at(trace, t)[1]);
 
@@ -330,7 +330,7 @@ describe('scene', () => {
     const BODY = { r: 232, g: 98, b: 76 };
     const HEAD = { r: 246, g: 208, b: 178 };
     const SUN = { r: 250, g: 226, b: 168 };
-    const start = () => open('scene.md', 'Finishing and looping');
+    const start = () => open('demo.md', 'A day in the park');
     const hero = (ops) => ({ body: parse(find(ops, BODY)[0]), head: parse(find(ops, HEAD)[0]) });
 
     it('draws the layers back to front', () => {
@@ -408,7 +408,7 @@ describe('scene', () => {
 
   describe('your own controls', () => {
     const start = () => {
-      const fig = open('scene.md', 'Your own controls');
+      const fig = open('scene.md', 'Scene');
       const button = (text) => fig.elements.find((el) => el.textContent === text);
       const controls = { pause: button('pause'), reset: button('reset'), loop: button('loop: on') };
       const finished = fig.elements.find((el) => el.tagName === 'SPAN');
@@ -503,7 +503,7 @@ describe('dynamic', () => {
   describe('spawn', () => {
     const SPARK = { r: 255, g: 190, b: 112 };
     const STAR = { r: 255, g: 236, b: 196 };
-    const start = () => open('scene.md', 'spawn');
+    const start = () => open('scene.md', 'Scene', 1);
     const meter = (ops) => parse(find(ops, SPARK).find((op) => op.startsWith('rect')));
     const sparks = (ops) => find(ops, SPARK).filter((op) => op.startsWith('fill')).map(parse);
     const click = (fig, x, y) => () => {
@@ -546,7 +546,7 @@ describe('dynamic', () => {
   describe('machine', () => {
     const SHIRT = { r: 232, g: 98, b: 76 };
     const BRUISE = { r: 150, g: 92, b: 160 };
-    const start = () => open('machine.md', 'machine');
+    const start = () => open('demo.md', 'Machine');
     const body = (ops) => parse(ops.find((op) => op.startsWith('rect') && op.includes(' 26 44 ')));
     const state = (ops) => ops.find((op) => op.startsWith('text')).split(' ')[1];
     const key = (fig, type, name) => () => fig.canvas.fire(type, { key: name });

@@ -39,10 +39,10 @@ describe('docs renderer', () => {
   });
 
   it('lets figures autoplay unless they pick their own control', async () => {
-    const markdown = ['```js sandbox=canvas 100x100 code', 'loop(() => {});', '```', '', '```js sandbox=canvas 100x100 control=none code', 'loop(() => {});', '```'].join('\n');
+    const markdown = ['```js sandbox=canvas 100x100 code', 'loop(() => {});', '```', '', '```js sandbox=canvas 100x100 control=default code', 'loop(() => {});', '```'].join('\n');
     const html = await createRenderer()(markdown);
 
-    expect(html.match(/data-control="[^"]*"/g)).toEqual(['data-control="autoplay"', 'data-control="none"']);
+    expect(html.match(/data-control="[^"]*"/g)).toEqual(['data-control="autoplay"', 'data-control="default"']);
     expect(await createRenderer({ control: 'hover' })(markdown)).toContain('data-control="hover"');
   });
 
@@ -54,6 +54,13 @@ describe('docs renderer', () => {
     expect(figures).toHaveLength(count);
     for (const figure of figures) expect(figure).toContain('class="sandbox-toggle"');
     expect(html).toContain('sbx-tok-keyword');
+  });
+
+  it('opens every figure on its code, and loads no frame until it is shown', async () => {
+    const html = await createRenderer({ bundle: 'var Canvas = {};' })(page);
+
+    expect(html.match(/<figure class="sandbox" data-mode="[^"]*"/g)).toEqual(Array(count).fill('<figure class="sandbox" data-mode="code"'));
+    expect(html).not.toMatch(/<iframe[^>]* srcdoc=/);
   });
 });
 

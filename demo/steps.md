@@ -4,9 +4,26 @@
 https://cdn.jsdelivr.net/npm/@briwa.dev/canvas/dist/index.iife.js
 ```
 
+A step changes shapes over time. A step without `targets` works on its layer's shapes, or the shapes given to `scene.add` / `scene.run`.
+
 ## tween
 
-`tween([targets]?, to, { duration, ease, from, stagger })`
+`tween(targets?, to, options?)` → `Step`
+
+Animates numeric fields to `to`. Start values are read when the step begins.
+
+| parameter | type | default | description |
+| --- | --- | --- | --- |
+| `targets` | `Entity \| Entity[]` | layer's shapes | Shapes to animate. |
+| `to` | `object \| (target, i) => object` | required | End values. Numbers, or objects of numbers (`color`). |
+| `options.duration` | `number` | `0` | Length in ms. |
+| `options.ease` | `(t) => number` | `easeInOutSine` | Easing function. |
+| `options.stagger` | `number` | `0` | Ms between the first and last target's start. |
+| `options.from` | `object \| (target, i) => object` | current values | Start values. |
+
+| returns | |
+| --- | --- |
+| `Step` | Lasts `duration + stagger` ms. |
 
 ```js sandbox=canvas 640x220 code
 const { Scene, layer, circle, tween, sequence, repeat } = Canvas;
@@ -94,11 +111,61 @@ const scene = new Scene({
 loop((t) => scene.render(t));
 ```
 
-## move, sequence, parallel, repeat, wait
+## move
 
-`move([targets]?, { x, y }, options)` is a `tween` by an offset, and `moveTo` moves `(x0, y0)` to a point. Both also take `(target, i) => ({ x, y })`.
+`move(targets?, by, options?)` → `Step`
 
-A `parallel` is done when every part that can end has ended.
+A `tween` that shifts the box by an offset.
+
+| parameter | type | default | description |
+| --- | --- | --- | --- |
+| `targets` | `Entity \| Entity[]` | layer's shapes | Shapes to move. |
+| `by` | `{ x?, y? } \| (target, i) => { x?, y? }` | required | Offset in pixels. |
+| `options` | `object` | `{}` | Same as `tween`. |
+
+| returns | |
+| --- | --- |
+| `Step` | Lasts `duration + stagger` ms. |
+
+## moveTo
+
+`moveTo(targets?, point, options?)` → `Step`
+
+A `tween` that moves `(x0, y0)` to a point, keeping the box's size.
+
+| parameter | type | default | description |
+| --- | --- | --- | --- |
+| `targets` | `Entity \| Entity[]` | layer's shapes | Shapes to move. |
+| `point` | `{ x?, y? } \| (target, i) => { x?, y? }` | required | Where `(x0, y0)` ends up. |
+| `options` | `object` | `{}` | Same as `tween`. |
+
+| returns | |
+| --- | --- |
+| `Step` | Lasts `duration + stagger` ms. |
+
+## sequence
+
+`sequence(...steps)` → `Step`
+
+| parameter | type | description |
+| --- | --- | --- |
+| `steps` | `Step \| Step[]` | Steps to run one after another. |
+
+| returns | |
+| --- | --- |
+| `Step` | Finishes when the last step does. |
+
+## parallel
+
+`parallel(...steps)` → `Step`
+
+| parameter | type | description |
+| --- | --- | --- |
+| `steps` | `Step \| Step[]` | Steps to run at once. |
+
+| returns | |
+| --- | --- |
+| `Step` | Finishes when every step that can end has ended. |
 
 ```js sandbox=canvas 640x220 code
 const { Scene, layer, rect, tween, move, wait, sequence, parallel, repeat } = Canvas;
@@ -124,7 +191,42 @@ const scene = new Scene({
 loop((t) => scene.render(t));
 ```
 
+## repeat
+
+`repeat(step, times?)` → `Step`
+
+| parameter | type | default | description |
+| --- | --- | --- | --- |
+| `step` | `Step` | required | Step to run again each time it ends. |
+| `times` | `number` | `Infinity` | How many runs. |
+
+| returns | |
+| --- | --- |
+| `Step` | Finishes after `times` runs. |
+
+## wait
+
+`wait(duration)` → `Step`
+
+| parameter | type | description |
+| --- | --- | --- |
+| `duration` | `number` | Ms to do nothing for. |
+
+| returns | |
+| --- | --- |
+| `Step` | Finishes after `duration`. |
+
 ## until
+
+`until(predicate)` → `Step`
+
+| parameter | type | description |
+| --- | --- | --- |
+| `predicate` | `(s) => boolean` | Checked every frame. |
+
+| returns | |
+| --- | --- |
+| `Step` | Finishes once `predicate` returns true. |
 
 ```js sandbox=canvas 640x200 code
 const { Scene, layer, circle, tween, until, sequence, repeat } = Canvas;
@@ -144,6 +246,17 @@ loop((t) => scene.render(t));
 ```
 
 ## forever
+
+`forever(targets?, update)` → `Step`
+
+| parameter | type | default | description |
+| --- | --- | --- | --- |
+| `targets` | `Entity \| Entity[]` | layer's shapes | Shapes it works on. |
+| `update` | `(s) => void` | required | Called every frame. |
+
+| returns | |
+| --- | --- |
+| `Step` | Never finishes. |
 
 ```js sandbox=canvas 640x200 code
 const { Scene, layer, circle, forever } = Canvas;
@@ -171,18 +284,27 @@ const scene = new Scene({
 loop((t) => scene.render(t));
 ```
 
-## Your own steps
+## step
 
-`step([targets]?, { duration, start, update })`
+`step(targets?, options)` → `Step`
 
-| on `s` | what it is |
-| --- | --- |
-| `s.targets` | its own targets, or its layer's |
-| `s.elapsed` | ms since the step started |
-| `s.dt` | ms since the last frame |
-| `s.progress` | 0 to 1 through `duration` |
-| `s.tween(target, { startAt, duration, from, to, ease })` | schedules a tween inside the step |
-| `s.complete()` | ends the step now |
+Makes your own step.
+
+| parameter | type | default | description |
+| --- | --- | --- | --- |
+| `targets` | `Entity \| Entity[]` | layer's shapes | Shapes it works on. |
+| `options.duration` | `number \| null` | `null` | Length in ms. `null` runs until `s.complete()`. |
+| `options.start` | `(s) => void` | | Called when the step begins. |
+| `options.update` | `(s) => void` | | Called every frame. |
+
+| `s` member | type | description |
+| --- | --- | --- |
+| `targets` | `Entity[]` | Its own targets, or its layer's. |
+| `elapsed` | `number` | Ms since it began. |
+| `dt` | `number` | Ms since the last frame. |
+| `progress` | `number` | 0–1 through `duration`. |
+| `tween(target, { startAt, duration, from, to, ease })` | `Step` | Schedules a tween inside the step. `startAt` is ms from its start. |
+| `complete()` | `void` | Ends the step now. |
 
 ```js sandbox=canvas 640x200 code
 const { Scene, layer, rect, step, wait, sequence, repeat } = Canvas;
@@ -215,4 +337,3 @@ const scene = new Scene({
 
 loop((t) => scene.render(t));
 ```
-

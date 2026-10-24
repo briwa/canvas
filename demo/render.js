@@ -42,6 +42,14 @@ function remarkDefaultControl({ control }) {
   };
 }
 
+function remarkOpenCode() {
+  return (tree) => {
+    for (const node of tree.children) {
+      if (kind(node) === 'figure' && !/(^|\s)open(\s|$)/.test(node.meta ?? '')) node.meta = `${node.meta ?? ''} open`;
+    }
+  };
+}
+
 function remarkHideLocalLibrary() {
   return (tree) => {
     tree.children = tree.children.filter(
@@ -51,7 +59,7 @@ function remarkHideLocalLibrary() {
 }
 
 export function createRenderer({ bundle, control = 'autoplay' } = {}) {
-  const { remarkPlugins, rehypePlugins } = sandboxMarkdownPlugins({ highlight: highlightCode });
+  const { remarkPlugins, rehypePlugins } = sandboxMarkdownPlugins({ highlight: highlightCode, lazy: true });
 
   const processor = unified()
     .use(remarkParse)
@@ -59,6 +67,7 @@ export function createRenderer({ bundle, control = 'autoplay' } = {}) {
     .use(remarkStripHtml)
     .use(remarkLocalLibrary, { bundle })
     .use(remarkDefaultControl, { control })
+    .use(remarkOpenCode)
     .use(remarkPlugins.filter((plugin) => plugin !== remarkStripHtml))
     .use(remarkHideLocalLibrary)
     .use(remarkRehype, { allowDangerousHtml: true })
