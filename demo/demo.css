@@ -22,7 +22,7 @@ section {
 header {
   display: flex;
   gap: 1.5rem;
-  align-items: baseline;
+  align-items: center;
   flex-wrap: wrap;
   font-family: var(--mono);
 }
@@ -32,7 +32,19 @@ header h1 {
   margin: 0;
 }
 
+.repo {
+  display: flex;
+  margin-left: auto;
+  color: inherit;
+  opacity: 0.7;
+}
+
+.repo:hover {
+  opacity: 1;
+}
+
 nav {
+  flex-basis: 100%;
   display: flex;
   flex-wrap: wrap;
   gap: 0.25rem 1rem;
