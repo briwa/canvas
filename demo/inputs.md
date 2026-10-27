@@ -18,7 +18,7 @@ Pass inputs to `new Scene({ inputs })`. They listen on the scene's canvas, and `
 | `pressed` | `boolean` | Went down this frame. |
 | `released` | `boolean` | Went up this frame. |
 
-```js sandbox=canvas 640x200 code
+```js sandbox=canvas 640x200 code expand
 const { Scene, MouseInput, circle } = Canvas;
 
 const mouse = new MouseInput();
@@ -60,7 +60,7 @@ Keys are `event.key` in lower case, with `' '` as `'space'` and `'esc'` as `'esc
 
 Click it, then use the arrow keys and space.
 
-```js sandbox=canvas 640x200 code
+```js sandbox=canvas 640x200 code expand
 const { Scene, KeyboardInput, rect, clamp } = Canvas;
 
 const ARROWS = ['arrowleft', 'arrowright', 'arrowup', 'arrowdown'];

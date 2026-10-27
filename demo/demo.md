@@ -8,7 +8,7 @@ https://cdn.jsdelivr.net/npm/@briwa.dev/canvas/dist/index.iife.js
 
 A dot goes from 0 to 1 and back, `ease(progress)` sets where it is, and the marks show where it sits at even steps of time.
 
-```js sandbox=canvas 640x300 code
+```js sandbox=canvas 640x300 code expand
 const { Scene, layer, Entity, path, circle, tween, wait, sequence, repeat, forever, linear } = Canvas;
 
 const name = knob('easeInOutSine', {
@@ -106,7 +106,7 @@ loop((t) => scene.render(t));
 
 Chain up to three moves, and watch the speed where one hands over to the next. Turn on `matchSpeed` to pick each later duration so the speed carries over.
 
-```js sandbox=canvas 640x480 control=default code
+```js sandbox=canvas 640x480 control=default code expand
 const { Scene, layer, Entity, path, circle, move, step, wait, sequence, forever } = Canvas;
 
 const EASES = ['linear', 'easeInSine', 'easeOutSine', 'easeInOutSine', 'easeOutLog', 'easeInLog', 'easeInExpo', 'easeInOutCubic', 'easeOutBack', 'easeInOutSineInverse'];
@@ -260,7 +260,7 @@ loop((t) => scene.render(t));
 
 Layers, custom steps, `sequence`, `repeat` and `loop: true`.
 
-```js sandbox=canvas 960x480 code
+```js sandbox=canvas 960x480 code expand
 const { Scene, layer, circle, rect, step, tween, move, wait, sequence, repeat, easeInOutSine, linear, mix } = Canvas;
 
 const HORIZON = 330;
@@ -388,7 +388,7 @@ loop((t) => scene.render(t));
 
 A `machine` with keyboard input, spawned acorns and hit tests. Click the figure first. Walk with ← → or A / D, and hop with space, ↑ or W.
 
-```js sandbox=canvas 640x300 code
+```js sandbox=canvas 640x300 code expand
 const { Scene, Entity, KeyboardInput, machine, rect, circle, step, forever, tween, move, wait, sequence, parallel, repeat, clamp, easeInOutSine, linear, mix } = Canvas;
 
 const HORIZON = 230;

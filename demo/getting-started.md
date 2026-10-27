@@ -31,7 +31,7 @@ requestAnimationFrame(function frame(time) {
 
 In the sandboxes on these pages, `canvas`, `width` and `height` are given, and `loop(fn)` calls `fn` with the time every frame.
 
-```js sandbox=canvas 640x200 control=default code
+```js sandbox=canvas 640x200 control=default code expand
 const { Scene, layer, circle, tween, sequence, easeInOutSine } = Canvas;
 
 const ball = circle({ x0: 40, y0: 80, x1: 80, y1: 120, color: { r: 224, g: 122, b: 95 } });

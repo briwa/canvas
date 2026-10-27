@@ -51,7 +51,7 @@ Map 0–1 time to 0–1 progress. Pass one as a tween's `ease`. See them plotted
 | `angle` | `number` | Degrees. 0 is up, and it turns anticlockwise. |
 | `length` | `number` | Distance from `origin`. |
 
-```js sandbox=canvas 640x200 code
+```js sandbox=canvas 640x200 code expand
 const { Scene, layer, path, forever, mix, polar } = Canvas;
 
 const coral = { r: 224, g: 122, b: 95 };

@@ -6,7 +6,7 @@ https://cdn.jsdelivr.net/npm/@briwa.dev/canvas/dist/index.iife.js
 
 Every shape is an `Entity`: a box from `(x0, y0)` to `(x1, y1)` with a `draw` function.
 
-```js sandbox=canvas 640x200 control=default code
+```js sandbox=canvas 640x200 control=default code expand
 const { Scene, layer, Entity, rect, circle, arc, path, area, spline, tween, wait, sequence } = Canvas;
 
 const color = { r: 224, g: 122, b: 95 };
@@ -102,7 +102,7 @@ Line from `(x0, y0)` to `(x1, y1)`. Takes the `Entity` fields, plus:
 
 Drag the ends and the knots, and change the rest from the settings.
 
-```js sandbox=canvas 640x340 code
+```js sandbox=canvas 640x340 code expand
 const { Scene, MouseInput, Entity, path, area, circle, rect, spline } = Canvas;
 
 const shape = knob('path', { options: ['path', 'area'] });

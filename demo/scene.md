@@ -45,7 +45,7 @@ Keeps time, runs steps, and draws shapes.
 
 `step` can also be a function that returns a step. Layers that run forever don't count towards finishing.
 
-```js sandbox=root 640x300 code
+```js sandbox=root 640x300 code expand
 const { Scene, layer, circle, tween, sequence, easeInOutSine } = Canvas;
 
 const canvas = document.createElement('canvas');
@@ -108,7 +108,7 @@ loop((t) => scene.render(t));
 
 Stars `spawn` on their own; click to throw sparks.
 
-```js sandbox=canvas 640x300 code
+```js sandbox=canvas 640x300 code expand
 const { Scene, MouseInput, rect, circle, path, move, moveTo, tween, wait, parallel, sequence, linear, easeInOutSine, mix, polar } = Canvas;
 
 const HORIZON = 230;

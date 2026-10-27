@@ -34,7 +34,7 @@ A step that is always in one of its states.
 | --- | --- |
 | `Machine` | A step that never finishes. |
 
-```js sandbox=canvas 640x200 code
+```js sandbox=canvas 640x200 code expand
 const { Scene, layer, Entity, circle, machine, move, tween } = Canvas;
 
 const ball = circle({ x0: 40, y0: 80, x1: 80, y1: 120, color: { r: 224, g: 122, b: 95 } });

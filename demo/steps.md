@@ -25,7 +25,7 @@ Animates numeric fields to `to`. Start values are read when the step begins.
 | --- | --- |
 | `Step` | Lasts `duration + stagger` ms. |
 
-```js sandbox=canvas 640x220 code
+```js sandbox=canvas 640x220 code expand
 const { Scene, layer, circle, tween, sequence, repeat } = Canvas;
 
 const blue = { r: 118, g: 176, b: 222 };
@@ -49,7 +49,7 @@ const scene = new Scene({
 loop((t) => scene.render(t));
 ```
 
-```js sandbox=canvas 960x480 code
+```js sandbox=canvas 960x480 code expand
 const { Scene, layer, rect, tween, sequence, linear } = Canvas;
 
 const BASE = { r: 30, g: 41, b: 59 };
@@ -167,7 +167,7 @@ A `tween` that moves `(x0, y0)` to a point, keeping the box's size.
 | --- | --- |
 | `Step` | Finishes when every step that can end has ended. |
 
-```js sandbox=canvas 640x220 code
+```js sandbox=canvas 640x220 code expand
 const { Scene, layer, rect, tween, move, wait, sequence, parallel, repeat } = Canvas;
 
 const walker = rect({ x0: 180, y0: 50, x1: 220, y1: 90, color: { r: 224, g: 122, b: 95 } });
@@ -228,7 +228,7 @@ loop((t) => scene.render(t));
 | --- | --- |
 | `Step` | Finishes once `predicate` returns true. |
 
-```js sandbox=canvas 640x200 code
+```js sandbox=canvas 640x200 code expand
 const { Scene, layer, circle, tween, until, sequence, repeat } = Canvas;
 
 const eyes = [250, 390].map((x) =>
@@ -258,7 +258,7 @@ loop((t) => scene.render(t));
 | --- | --- |
 | `Step` | Never finishes. |
 
-```js sandbox=canvas 640x200 code
+```js sandbox=canvas 640x200 code expand
 const { Scene, layer, circle, forever } = Canvas;
 
 const sun = circle({ x0: 300, y0: 80, x1: 340, y1: 120, color: { r: 224, g: 122, b: 95 } });
@@ -306,7 +306,7 @@ Makes your own step.
 | `tween(target, { startAt, duration, from, to, ease })` | `Step` | Schedules a tween inside the step. `startAt` is ms from its start. |
 | `complete()` | `void` | Ends the step now. |
 
-```js sandbox=canvas 640x200 code
+```js sandbox=canvas 640x200 code expand
 const { Scene, layer, rect, step, wait, sequence, repeat } = Canvas;
 
 function shake({ duration, strength }) {

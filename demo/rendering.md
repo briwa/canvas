@@ -17,7 +17,7 @@ A scene only keeps time and calls a `Renderer`. Both can be used without a scene
 | `clear()` | `void` | Clears the canvas. |
 | `render(shapes)` | `void` | Draws `shapes` in order, setting `alpha` and `color` for each. |
 
-```js sandbox=canvas 640x240 control=default code
+```js sandbox=canvas 640x240 control=default code expand
 const { Renderer, circle, path, drawRect, polar, mix, easeInOutSine } = Canvas;
 
 const CORAL = { r: 224, g: 122, b: 95 };
