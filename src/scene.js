@@ -141,7 +141,7 @@ export class Scene {
   }
 
   advance(time) {
-    let dt = this.time === null ? 0 : time - this.time;
+    const dt = this.time === null ? 0 : time - this.time;
     this.time = time;
 
     if (this.paused) {
@@ -149,13 +149,18 @@ export class Scene {
       return this;
     }
 
+    return this.forward(this.started ? dt : 0);
+  }
+
+  seek(duration, interval = 16) {
+    for (let left = duration; left > 0; left -= interval) this.forward(Math.min(interval, left));
+
+    return this;
+  }
+
+  forward(dt) {
     this.baseline ??= { entities: [...this.entities], runs: [...this.runs] };
-
-    if (!this.started) {
-      this.started = true;
-      dt = 0;
-    }
-
+    this.started = true;
     this.dt = dt;
     this.elapsed += dt;
 

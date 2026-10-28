@@ -661,6 +661,43 @@ describe('Scene', () => {
     expect(canopies[0].x0).toBeCloseTo(0);
   });
 
+  it('seeks ahead of the first frame and carries on from there', () => {
+    const { scene, canopies } = build();
+
+    scene.seek(300);
+
+    expect(scene.elapsed).toBe(300);
+    expect(canopies[0].x0).toBeCloseTo(8);
+
+    scene.advance(5000);
+    scene.advance(5300);
+
+    expect(scene.elapsed).toBe(600);
+    expect(canopies[0].x0).toBeCloseTo(0);
+  });
+
+  it('fires cues met along the way of a seek', () => {
+    const scene = new Scene();
+    const fired = [];
+
+    scene.run([], sequence(wait(100), cue(() => fired.push(scene.elapsed))));
+    scene.seek(250);
+
+    expect(fired).toHaveLength(1);
+    expect(fired[0]).toBeGreaterThanOrEqual(100);
+    expect(fired[0]).toBeLessThan(120);
+  });
+
+  it('rewinds a seek on reset', () => {
+    const { scene, canopies } = build();
+
+    scene.seek(300);
+    scene.reset();
+
+    expect(scene.elapsed).toBe(0);
+    expect(canopies[0].x0).toBe(0);
+  });
+
   it('finishes with the parts that end and keeps the endless ones going', () => {
     const { scene, bands, hero } = build();
 
