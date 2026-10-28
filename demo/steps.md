@@ -97,12 +97,15 @@ const scene = new Scene({
           ease: linear,
           from: (card) => ({ alpha: 0, y0: card.y0 + 24, color: BASE }),
         }),
-        tween({ color: ACCENT, alpha: 0.25 }, {
-          duration: 900,
-          stagger: 600,
-          ease: linear,
-          from: (card) => ({ color: card.tint, alpha: 1 }),
-        }),
+        tween(
+          { color: ACCENT, alpha: 0.25 },
+          {
+            duration: 900,
+            stagger: 600,
+            ease: linear,
+            from: (card) => ({ color: card.tint, alpha: 1 }),
+          },
+        ),
       ),
     ),
   ],
@@ -197,7 +200,12 @@ const scene = new Scene({
       [walker, blinker],
       parallel(
         repeat(sequence(go(200, 0), go(0, 80), wait(300), go(-200, 0), go(0, -80), wait(300))),
-        repeat(sequence(tween([blinker], { alpha: 0.2 }, { duration: 600 }), tween([blinker], { alpha: 1 }, { duration: 600 }))),
+        repeat(
+          sequence(
+            tween([blinker], { alpha: 0.2 }, { duration: 600 }),
+            tween([blinker], { alpha: 1 }, { duration: 600 }),
+          ),
+        ),
       ),
     ),
   ],
@@ -266,7 +274,18 @@ const blink = (dy) => tween((e) => ({ y0: e.y0 + dy, y1: e.y1 - dy }), { duratio
 
 const scene = new Scene({
   canvas,
-  layers: [layer(eyes, repeat(sequence(until(() => Math.random() < 0.02), blink(38), blink(-38))))],
+  layers: [
+    layer(
+      eyes,
+      repeat(
+        sequence(
+          until(() => Math.random() < 0.02),
+          blink(38),
+          blink(-38),
+        ),
+      ),
+    ),
+  ],
 });
 
 loop((t) => scene.render(t));

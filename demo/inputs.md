@@ -34,7 +34,13 @@ scene.add(dot);
 scene.onUpdate(() => {
   const r = mouse.down ? 24 : 12;
 
-  Object.assign(dot, { x0: mouse.x - r, y0: mouse.y - r, x1: mouse.x + r, y1: mouse.y + r, alpha: mouse.inside ? 1 : 0.4 });
+  Object.assign(dot, {
+    x0: mouse.x - r,
+    y0: mouse.y - r,
+    x1: mouse.x + r,
+    y1: mouse.y + r,
+    alpha: mouse.inside ? 1 : 0.4,
+  });
 });
 
 loop((t) => scene.render(t));
@@ -75,7 +81,11 @@ const box = rect({ x0: 300, y0: 80, x1: 340, y1: 120, color: { r: 118, g: 176, b
 scene.add(box);
 
 scene.onUpdate((s) => {
-  const x = clamp(box.x0 + keyboard.axis(['arrowleft'], ['arrowright']) * 0.3 * s.dt, 0, width - 40);
+  const x = clamp(
+    box.x0 + keyboard.axis(['arrowleft'], ['arrowright']) * 0.3 * s.dt,
+    0,
+    width - 40,
+  );
   const y = clamp(box.y0 + keyboard.axis(['arrowup'], ['arrowdown']) * 0.3 * s.dt, 0, height - 40);
 
   Object.assign(box, { x0: x, y0: y, x1: x + 40, y1: y + 40 });

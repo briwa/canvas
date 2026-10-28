@@ -7,12 +7,14 @@ https://cdn.jsdelivr.net/npm/@briwa.dev/canvas/dist/index.iife.js
 Every shape is an `Entity`: a box from `(x0, y0)` to `(x1, y1)` with a `draw` function.
 
 ```js sandbox=canvas 640x200 control=default code expand
-const { Scene, layer, Entity, rect, circle, arc, path, area, spline, tween, wait, sequence } = Canvas;
+const { Scene, layer, Entity, rect, circle, arc, path, area, spline, tween, wait, sequence } =
+  Canvas;
 
 const color = { r: 224, g: 122, b: 95 };
 const box = (i) => ({ x0: 20 + i * 105, y0: 60, x1: 100 + i * 105, y1: 140 });
 
-const draw = (to, back) => sequence(tween(to, { duration: 1200 }), wait(800), tween(back, { duration: 1200 }));
+const draw = (to, back) =>
+  sequence(tween(to, { duration: 1200 }), wait(800), tween(back, { duration: 1200 }));
 
 const triangle = new Entity({
   ...box(5),
@@ -32,8 +34,25 @@ const scene = new Scene({
   canvas,
   layers: [
     layer([rect({ ...box(0), color }), circle({ ...box(1), color })]),
-    layer([arc({ ...box(2), lineWidth: 4, endAngle: 0, color })], draw({ endAngle: Math.PI * 2 }, { endAngle: 0 })),
-    layer([path({ ...box(3), y0: 140, y1: 60, lineWidth: 4, t1: 0, knots: [0, 16, -16, 16, 0], offset: (t, e) => spline(e.knots, t), color })], draw({ t1: 1 }, { t1: 0 })),
+    layer(
+      [arc({ ...box(2), lineWidth: 4, endAngle: 0, color })],
+      draw({ endAngle: Math.PI * 2 }, { endAngle: 0 }),
+    ),
+    layer(
+      [
+        path({
+          ...box(3),
+          y0: 140,
+          y1: 60,
+          lineWidth: 4,
+          t1: 0,
+          knots: [0, 16, -16, 16, 0],
+          offset: (t, e) => spline(e.knots, t),
+          color,
+        }),
+      ],
+      draw({ t1: 1 }, { t1: 0 }),
+    ),
     layer([area({ ...box(4), y0: 110, y1: 110, offset: hill, base: -30, color }), triangle]),
   ],
 });
@@ -116,8 +135,16 @@ const INK = { r: 224, g: 122, b: 95 };
 const BLUE = { r: 118, g: 176, b: 222 };
 const MUTED = { r: 150, g: 158, b: 168 };
 
-const saved = (globalThis.dragged ??= { x0: 80, y0: 170, x1: 560, y1: 170, along: [0, 0], across: [0, 0] });
-const resample = (values) => Array.from({ length: knots }, (_, i) => Math.round(spline(values, i / (knots - 1))));
+const saved = (globalThis.dragged ??= {
+  x0: 80,
+  y0: 170,
+  x1: 560,
+  y1: 170,
+  along: [0, 0],
+  across: [0, 0],
+});
+const resample = (values) =>
+  Array.from({ length: knots }, (_, i) => Math.round(spline(values, i / (knots - 1))));
 
 saved.along = resample(saved.along);
 saved.across = resample(saved.across);
@@ -126,7 +153,11 @@ const { along, across } = saved;
 const make = shape === 'area' ? area : path;
 
 const line = make({
-  t0, t1, base, along, across,
+  t0,
+  t1,
+  base,
+  along,
+  across,
   segments: 96,
   lineWidth: 4,
   alpha: shape === 'area' ? 0.85 : 1,
@@ -208,7 +239,10 @@ scene.onUpdate(() => {
     Object.assign(dots[i], { x0: x - 6, y0: y - 6, x1: x + 6, y1: y + 6 });
   });
 
-  [[x0, y0], [x1, y1]].forEach(([x, y], i) => Object.assign(ends[i], { x0: x - 6, y0: y - 6, x1: x + 6, y1: y + 6 }));
+  [
+    [x0, y0],
+    [x1, y1],
+  ].forEach(([x, y], i) => Object.assign(ends[i], { x0: x - 6, y0: y - 6, x1: x + 6, y1: y + 6 }));
 
   label.text = `along: [${along.join(', ')}]   across: [${across.join(', ')}]`;
 });

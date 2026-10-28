@@ -36,18 +36,21 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "test": "vitest run",
+    "test": "npm run format:demos:check && vitest run",
     "test:watch": "vitest",
     "preview": "vite preview",
     "deploy-preview": "npm run demo:build && npx wrangler dev",
     "deploy": "npm run demo:build && wrangler deploy",
     "demo:build": "vite build --config vite.config.site.js",
-    "prepack": "npm run build"
+    "prepack": "npm run build",
+    "format:demos": "node demo/format.js",
+    "format:demos:check": "node demo/format.js --check"
   },
   "devDependencies": {
     "@briwa.dev/sandbox": "^0.12.0",
     "@lezer/highlight": "^1.2.5",
     "@lezer/javascript": "^1.5.6",
+    "prettier": "^3.9.10",
     "rehype-stringify": "^10.0.1",
     "remark-gfm": "^4.0.1",
     "remark-parse": "^11.0.0",

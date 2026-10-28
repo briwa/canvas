@@ -53,7 +53,8 @@ canvas.width = width;
 canvas.height = height - 48;
 
 const bar = document.createElement('div');
-bar.style.cssText = 'display:flex;gap:8px;align-items:center;justify-content:center;height:48px;font:13px system-ui';
+bar.style.cssText =
+  'display:flex;gap:8px;align-items:center;justify-content:center;height:48px;font:13px system-ui';
 root.append(canvas, bar);
 
 function button(label, onClick) {
@@ -109,7 +110,24 @@ loop((t) => scene.render(t));
 Stars `spawn` on their own; click to throw sparks.
 
 ```js sandbox=canvas 640x300 code expand
-const { Scene, MouseInput, rect, circle, path, move, moveTo, tween, wait, parallel, sequence, linear, easeInOutSine, mix, polar, random } = Canvas;
+const {
+  Scene,
+  MouseInput,
+  rect,
+  circle,
+  path,
+  move,
+  moveTo,
+  tween,
+  wait,
+  parallel,
+  sequence,
+  linear,
+  easeInOutSine,
+  mix,
+  polar,
+  random,
+} = Canvas;
 
 const HORIZON = 230;
 const STAR = { r: 255, g: 236, b: 196 };
@@ -131,11 +149,32 @@ const sky = Array.from({ length: 5 }, (_, i) =>
   }),
 );
 
-const ground = rect({ x0: 0, x1: width, y0: HORIZON, y1: height, z: 1, color: { r: 22, g: 27, b: 42 } });
+const ground = rect({
+  x0: 0,
+  x1: width,
+  y0: HORIZON,
+  y1: height,
+  z: 1,
+  color: { r: 22, g: 27, b: 42 },
+});
 
 const hills = [
-  circle({ x0: -140, x1: 360, y0: HORIZON - 64, y1: HORIZON + 300, z: 1, color: { r: 26, g: 32, b: 50 } }),
-  circle({ x0: 300, x1: 820, y0: HORIZON - 36, y1: HORIZON + 300, z: 1, color: { r: 22, g: 27, b: 42 } }),
+  circle({
+    x0: -140,
+    x1: 360,
+    y0: HORIZON - 64,
+    y1: HORIZON + 300,
+    z: 1,
+    color: { r: 26, g: 32, b: 50 },
+  }),
+  circle({
+    x0: 300,
+    x1: 820,
+    y0: HORIZON - 36,
+    y1: HORIZON + 300,
+    z: 1,
+    color: { r: 22, g: 27, b: 42 },
+  }),
 ];
 
 const meter = rect({ x0: 16, x1: 16, y0: height - 14, y1: height - 10, z: 2, color: SPARK });
@@ -147,14 +186,21 @@ const scenery = scene.size;
 const fall = () =>
   parallel(
     move({ x: 240, y: 150 }, { duration: 1500, ease: linear }),
-    sequence(tween({ alpha: 1 }, { duration: 300 }), wait(500), tween({ alpha: 0 }, { duration: 700 })),
+    sequence(
+      tween({ alpha: 1 }, { duration: 300 }),
+      wait(500),
+      tween({ alpha: 0 }, { duration: 700 }),
+    ),
   );
 
 scene.every(rate, () => {
   const x = random(-120, width - 120);
   const y = random(0, 90);
 
-  scene.spawn(path({ x0: x, y0: y, x1: x + 16, y1: y + 10, alpha: 0, lineWidth: 2, color: STAR }), fall);
+  scene.spawn(
+    path({ x0: x, y0: y, x1: x + 16, y1: y + 10, alpha: 0, lineWidth: 2, color: STAR }),
+    fall,
+  );
 });
 
 scene.onUpdate(() => {
@@ -166,8 +212,18 @@ scene.onUpdate(() => {
     const to = polar(mouse, (i * 360) / burst + random(0, 20), random(40, 70));
 
     scene.spawn(
-      circle({ x0: mouse.x - 3, x1: mouse.x + 3, y0: mouse.y - 3, y1: mouse.y + 3, z: 2, color: SPARK }),
-      parallel(moveTo({ x: to.x - 3, y: to.y - 3 }, { duration: 600, ease: easeInOutSine }), tween({ alpha: 0 }, { duration: 600 })),
+      circle({
+        x0: mouse.x - 3,
+        x1: mouse.x + 3,
+        y0: mouse.y - 3,
+        y1: mouse.y + 3,
+        z: 2,
+        color: SPARK,
+      }),
+      parallel(
+        moveTo({ x: to.x - 3, y: to.y - 3 }, { duration: 600, ease: easeInOutSine }),
+        tween({ alpha: 0 }, { duration: 600 }),
+      ),
     );
   }
 });

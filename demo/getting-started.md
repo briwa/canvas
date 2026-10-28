@@ -21,7 +21,10 @@ Or load the script above, which puts everything on a global `Canvas`.
 A scene draws layers. A layer holds shapes and a step that changes them. Call `scene.render(time)` every frame.
 
 ```js
-const scene = new Scene({ canvas, layers: [layer([ball], tween({ x0: 300 }, { duration: 1000 }))] });
+const scene = new Scene({
+  canvas,
+  layers: [layer([ball], tween({ x0: 300 }, { duration: 1000 }))],
+});
 
 requestAnimationFrame(function frame(time) {
   scene.render(time);

@@ -9,10 +9,22 @@ https://cdn.jsdelivr.net/npm/@briwa.dev/canvas/dist/index.iife.js
 A dot goes from 0 to 1 and back, `ease(progress)` sets where it is, and the marks show where it sits at even steps of time.
 
 ```js sandbox=canvas 640x300 code expand
-const { Scene, layer, Entity, path, circle, tween, wait, sequence, repeat, forever, linear } = Canvas;
+const { Scene, layer, Entity, path, circle, tween, wait, sequence, repeat, forever, linear } =
+  Canvas;
 
 const name = knob('easeInOutSine', {
-  options: ['linear', 'easeInOutSine', 'easeInOutSineInverse', 'easeInSine', 'easeOutSine', 'easeOutLog', 'easeInLog', 'easeInExpo', 'easeInOutCubic', 'easeOutBack'],
+  options: [
+    'linear',
+    'easeInOutSine',
+    'easeInOutSineInverse',
+    'easeInSine',
+    'easeOutSine',
+    'easeOutLog',
+    'easeInLog',
+    'easeInExpo',
+    'easeInOutCubic',
+    'easeOutBack',
+  ],
 });
 const duration = knob(1200, { min: 200, max: 4000, step: 100 });
 const hold = knob(400, { min: 0, max: 2000, step: 100 });
@@ -27,7 +39,10 @@ const plot = { x0: 40, y0: 250, x1: 240, y1: 50 };
 const track = { x0: 300, x1: 600, y: 150 };
 
 const curve = path({
-  x0: plot.x0, y0: plot.y0, x1: plot.x1, y1: plot.y0,
+  x0: plot.x0,
+  y0: plot.y0,
+  x1: plot.x1,
+  y1: plot.y0,
   segments: 120,
   lineWidth: 3,
   color: INK,
@@ -37,7 +52,15 @@ const curve = path({
 const axes = [
   path({ x0: plot.x0, y0: plot.y0, x1: plot.x1, y1: plot.y0, lineWidth: 1, color: MUTED }),
   path({ x0: plot.x0, y0: plot.y0, x1: plot.x0, y1: plot.y1, lineWidth: 1, color: MUTED }),
-  path({ x0: plot.x0, y0: plot.y0, x1: plot.x1, y1: plot.y1, lineWidth: 1, alpha: 0.5, color: MUTED }),
+  path({
+    x0: plot.x0,
+    y0: plot.y0,
+    x1: plot.x1,
+    y1: plot.y1,
+    lineWidth: 1,
+    alpha: 0.5,
+    color: MUTED,
+  }),
   path({ x0: track.x0, y0: track.y, x1: track.x1, y1: track.y, lineWidth: 1, color: MUTED }),
 ];
 
@@ -67,12 +90,20 @@ const text = (x0, y0, value) =>
 const readout = text(track.x0, 240, '');
 const clock = new Entity({ progress: 0, draw() {} });
 
-const place = (entity, x, y, r) => Object.assign(entity, { x0: x - r, y0: y - r, x1: x + r, y1: y + r });
+const place = (entity, x, y, r) =>
+  Object.assign(entity, { x0: x - r, y0: y - r, x1: x + r, y1: y + r });
 
 const scene = new Scene({
   canvas,
   layers: [
-    layer([axes, curve, marks, text(plot.x0, 275, 'progress →'), text(plot.x0 - 30, plot.y1 - 12, 'ease(progress)'), text(track.x0, 110, 'grey: linear, coral: ' + name)]),
+    layer([
+      axes,
+      curve,
+      marks,
+      text(plot.x0, 275, 'progress →'),
+      text(plot.x0 - 30, plot.y1 - 12, 'ease(progress)'),
+      text(track.x0, 110, 'grey: linear, coral: ' + name),
+    ]),
     layer(
       [clock],
       repeat(
@@ -109,7 +140,18 @@ Chain up to three moves, and watch the speed where one hands over to the next. T
 ```js sandbox=canvas 640x480 control=default code expand
 const { Scene, layer, Entity, path, circle, move, step, wait, sequence, forever } = Canvas;
 
-const EASES = ['linear', 'easeInSine', 'easeOutSine', 'easeInOutSine', 'easeOutLog', 'easeInLog', 'easeInExpo', 'easeInOutCubic', 'easeOutBack', 'easeInOutSineInverse'];
+const EASES = [
+  'linear',
+  'easeInSine',
+  'easeOutSine',
+  'easeInOutSine',
+  'easeOutLog',
+  'easeInLog',
+  'easeInExpo',
+  'easeInOutCubic',
+  'easeOutBack',
+  'easeInOutSineInverse',
+];
 
 const distance1 = knob(100, { min: -300, max: 400, step: 10 });
 const duration1 = knob(1000, { min: 100, max: 6000, step: 100 });
@@ -148,7 +190,8 @@ if (matchSpeed) {
     const before = i && endSpeed(legs[i - 1]);
     const slope = ((leg.ease(H) - leg.ease(0)) / H) * leg.distance;
 
-    if (before && slope / before > 0) leg.duration = Math.min(20000, Math.max(16, Math.round(slope / before)));
+    if (before && slope / before > 0)
+      leg.duration = Math.min(20000, Math.max(16, Math.round(slope / before)));
   });
 }
 
@@ -161,7 +204,8 @@ const position = (time) => {
   let x = 0;
 
   for (const [i, leg] of legs.entries()) {
-    if (time < starts[i] + leg.duration) return x + leg.distance * leg.ease(Math.max(0, (time - starts[i]) / leg.duration));
+    if (time < starts[i] + leg.duration)
+      return x + leg.distance * leg.ease(Math.max(0, (time - starts[i]) / leg.duration));
     x += leg.distance;
   }
 
@@ -179,7 +223,16 @@ const graph = { x0: 40, x1: 600 };
 const scale = (graph.x1 - graph.x0) / (highest - lowest);
 
 const plot = (y, value, color) =>
-  path({ x0: graph.x0, y0: y, x1: graph.x1, y1: y, segments: 400, lineWidth: 2, color, offset: (t) => value(t * span) });
+  path({
+    x0: graph.x0,
+    y0: y,
+    x1: graph.x1,
+    y1: y,
+    segments: 400,
+    lineWidth: 2,
+    color,
+    offset: (t) => value(t * span),
+  });
 
 const text = (x0, y0, value, color = MUTED) =>
   new Entity({
@@ -206,15 +259,27 @@ const seams = starts.slice(1).map((time, i) => {
 
 const code = [
   'sequence(',
-  ...legs.map((leg) => `  move({ x: ${leg.distance} }, { duration: ${leg.duration}, ease: ${leg.name} }),`),
-  ...(drift ? [`  forever(...), // ${(glide * FRAME).toFixed(2)} px/frame, fading over ${fade}ms`] : []),
+  ...legs.map(
+    (leg) => `  move({ x: ${leg.distance} }, { duration: ${leg.duration}, ease: ${leg.name} }),`,
+  ),
+  ...(drift
+    ? [`  forever(...), // ${(glide * FRAME).toFixed(2)} px/frame, fading over ${fade}ms`]
+    : []),
   ')',
 ].join('\n');
 
-const dot = circle({ x0: graph.x0 - lowest * scale - 8, y0: 42, x1: graph.x0 - lowest * scale + 8, y1: 58, color: INK });
+const dot = circle({
+  x0: graph.x0 - lowest * scale - 8,
+  y0: 42,
+  x1: graph.x0 - lowest * scale + 8,
+  y1: 58,
+  color: INK,
+});
 const cursor = path({ x0: graph.x0, y0: 90, x1: graph.x0, y1: 300, lineWidth: 1, color: INK });
 
-const steps = legs.map((leg) => move({ x: leg.distance * scale }, { duration: leg.duration, ease: leg.ease }));
+const steps = legs.map((leg) =>
+  move({ x: leg.distance * scale }, { duration: leg.duration, ease: leg.ease }),
+);
 const driftStep = forever((s) => {
   const moved = glide * scale * Math.exp(-s.elapsed / fade) * s.dt;
 
@@ -244,7 +309,8 @@ const scene = new Scene({
       step({
         duration: span,
         update(s) {
-          cursor.x0 = cursor.x1 = graph.x0 + ((graph.x1 - graph.x0) * Math.min(s.elapsed, span)) / span;
+          cursor.x0 = cursor.x1 =
+            graph.x0 + ((graph.x1 - graph.x0) * Math.min(s.elapsed, span)) / span;
         },
       }),
     ),
@@ -261,7 +327,21 @@ loop((t) => scene.render(t));
 Layers, custom steps, `sequence`, `repeat` and `loop: true`.
 
 ```js sandbox=canvas 960x480 code expand
-const { Scene, layer, circle, rect, step, tween, move, wait, sequence, repeat, easeInOutSine, linear, mix } = Canvas;
+const {
+  Scene,
+  layer,
+  circle,
+  rect,
+  step,
+  tween,
+  move,
+  wait,
+  sequence,
+  repeat,
+  easeInOutSine,
+  linear,
+  mix,
+} = Canvas;
 
 const HORIZON = 330;
 const BANDS = 6;
@@ -279,7 +359,12 @@ function walk({ duration, dx, strides, lift = 7 }) {
     duration,
     start(s) {
       for (const part of s.targets) {
-        s.tween(part, { startAt: 0, duration, ease: linear, to: { x0: part.x0 + dx, x1: part.x1 + dx } });
+        s.tween(part, {
+          startAt: 0,
+          duration,
+          ease: linear,
+          to: { x0: part.x0 + dx, x1: part.x1 + dx },
+        });
 
         const { y0, y1 } = part;
 
@@ -329,15 +414,35 @@ const bands = Array.from({ length: BANDS }, (_, i) =>
   }),
 );
 
-const sun = circle({ x0: 664, x1: 664 + SUN, y0: HORIZON + 26, y1: HORIZON + 26 + SUN, color: { r: 250, g: 226, b: 168 } });
+const sun = circle({
+  x0: 664,
+  x1: 664 + SUN,
+  y0: HORIZON + 26,
+  y1: HORIZON + 26 + SUN,
+  color: { r: 250, g: 226, b: 168 },
+});
 const ground = rect({ x0: 0, x1: width, y0: HORIZON, y1: height, color: { r: 34, g: 50, b: 42 } });
 
 const trees = [tree(120, 1), tree(310, 0.8), tree(620, 1.1), tree(848, 0.9)];
 const trunks = trees.map((t) => t.trunk);
 const canopies = trees.map((t) => t.canopy);
 
-const body = rect({ x0: 60, x1: 86, y0: HORIZON - 46, y1: HORIZON, alpha: 0, color: { r: 232, g: 98, b: 76 } });
-const head = circle({ x0: 64, x1: 82, y0: HORIZON - 66, y1: HORIZON - 46, alpha: 0, color: { r: 246, g: 208, b: 178 } });
+const body = rect({
+  x0: 60,
+  x1: 86,
+  y0: HORIZON - 46,
+  y1: HORIZON,
+  alpha: 0,
+  color: { r: 232, g: 98, b: 76 },
+});
+const head = circle({
+  x0: 64,
+  x1: 82,
+  y0: HORIZON - 66,
+  y1: HORIZON - 46,
+  alpha: 0,
+  color: { r: 246, g: 208, b: 178 },
+});
 const hero = [body, head];
 
 const skyTo = ({ top, low }, duration) =>
@@ -389,7 +494,27 @@ loop((t) => scene.render(t));
 A `machine` with keyboard input, spawned acorns and hit tests. Click the figure first. Walk with ← → or A / D, and hop with space, ↑ or W.
 
 ```js sandbox=canvas 640x300 code expand
-const { Scene, Entity, KeyboardInput, machine, rect, circle, step, forever, tween, move, wait, sequence, parallel, repeat, clamp, easeInOutSine, linear, mix, random } = Canvas;
+const {
+  Scene,
+  Entity,
+  KeyboardInput,
+  machine,
+  rect,
+  circle,
+  step,
+  forever,
+  tween,
+  move,
+  wait,
+  sequence,
+  parallel,
+  repeat,
+  clamp,
+  easeInOutSine,
+  linear,
+  mix,
+  random,
+} = Canvas;
 
 const HORIZON = 230;
 const JUMP = ['space', 'arrowup', 'w'];
@@ -420,7 +545,13 @@ const ground = rect({ x0: 0, x1: width, y0: HORIZON, y1: height, color: { r: 34,
 const canopy = rect({ x0: 0, x1: width, y0: 0, y1: 26, z: 2, color: { r: 46, g: 98, b: 64 } });
 
 const body = rect({ x0: 300, x1: 326, y0: HORIZON - 44, y1: HORIZON, color: { ...SHIRT } });
-const head = circle({ x0: 304, x1: 322, y0: HORIZON - 62, y1: HORIZON - 44, color: { r: 246, g: 208, b: 178 } });
+const head = circle({
+  x0: 304,
+  x1: 322,
+  y0: HORIZON - 62,
+  y1: HORIZON - 44,
+  color: { r: 246, g: 208, b: 178 },
+});
 const hero = [body, head];
 
 const label = new Entity({
@@ -507,14 +638,18 @@ scene.every(drop, () => {
   acorns.add(acorn);
   scene.spawn(
     acorn,
-    sequence(move({ y: HORIZON - 28 }, { duration: 1600, ease: (p) => p * p }), tween({ alpha: 0 }, { duration: 300 })),
+    sequence(
+      move({ y: HORIZON - 28 }, { duration: 1600, ease: (p) => p * p }),
+      tween({ alpha: 0 }, { duration: 300 }),
+    ),
     () => acorns.delete(acorn),
   );
 });
 
 scene.onUpdate(() => {
   for (const acorn of acorns) {
-    const hit = acorn.x1 > head.x0 && acorn.x0 < head.x1 && acorn.y1 > head.y0 && acorn.y0 < body.y1;
+    const hit =
+      acorn.x1 > head.x0 && acorn.x0 < head.x1 && acorn.y1 > head.y0 && acorn.y0 < body.y1;
 
     if (hit && acorn.alpha === 1 && !brain.is('dizzy')) {
       acorns.delete(acorn);

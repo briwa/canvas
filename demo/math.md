@@ -65,7 +65,14 @@ const ticks = Array.from({ length: 12 }, (_, i) => {
   return path({ x0: from.x, y0: from.y, x1: to.x, y1: to.y, lineWidth: 2, color: blue });
 });
 
-const hand = path({ x0: center.x, y0: center.y, x1: center.x, y1: center.y, lineWidth: 4, color: coral });
+const hand = path({
+  x0: center.x,
+  y0: center.y,
+  x1: center.x,
+  y1: center.y,
+  lineWidth: 4,
+  color: coral,
+});
 
 const scene = new Scene({
   canvas,
