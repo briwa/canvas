@@ -258,6 +258,10 @@ export function wait(duration) {
   return new Step({ duration });
 }
 
+export function cue(fn) {
+  return new Step({ duration: 0, start: fn });
+}
+
 export function until(predicate) {
   return new Step({
     update(s) {
@@ -322,6 +326,19 @@ export function moveTo(...args) {
   };
 
   return targets === undefined ? tween(to, options) : tween(targets, to, options);
+}
+
+export function grow(...args) {
+  const [targets, options] = isTargets(args[0]) ? args : [undefined, args[0]];
+  const to = (target) => ({ x0: target.x0, x1: target.x1, y0: target.y0, y1: target.y1 });
+  const from = (target) => {
+    const x = (target.x0 + target.x1) / 2;
+    const y = (target.y0 + target.y1) / 2;
+
+    return { x0: x, x1: x, y0: y, y1: y };
+  };
+
+  return targets === undefined ? tween(to, { ...options, from }) : tween(targets, to, { ...options, from });
 }
 
 export function sequence(...steps) {

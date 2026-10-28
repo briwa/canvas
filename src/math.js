@@ -80,3 +80,11 @@ export function spline(values, t) {
 export function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
 }
+
+export function random(min, max) {
+  return min + Math.random() * (max - min);
+}
+
+export function randomInt(min, max) {
+  return Math.floor(random(min, max));
+}

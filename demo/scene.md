@@ -109,7 +109,7 @@ loop((t) => scene.render(t));
 Stars `spawn` on their own; click to throw sparks.
 
 ```js sandbox=canvas 640x300 code expand
-const { Scene, MouseInput, rect, circle, path, move, moveTo, tween, wait, parallel, sequence, linear, easeInOutSine, mix, polar } = Canvas;
+const { Scene, MouseInput, rect, circle, path, move, moveTo, tween, wait, parallel, sequence, linear, easeInOutSine, mix, polar, random } = Canvas;
 
 const HORIZON = 230;
 const STAR = { r: 255, g: 236, b: 196 };
@@ -151,8 +151,8 @@ const fall = () =>
   );
 
 scene.every(rate, () => {
-  const x = Math.random() * width - 120;
-  const y = Math.random() * 90;
+  const x = random(-120, width - 120);
+  const y = random(0, 90);
 
   scene.spawn(path({ x0: x, y0: y, x1: x + 16, y1: y + 10, alpha: 0, lineWidth: 2, color: STAR }), fall);
 });
@@ -163,7 +163,7 @@ scene.onUpdate(() => {
   if (!mouse.pressed) return;
 
   for (let i = 0; i < burst; i++) {
-    const to = polar(mouse, (i * 360) / burst + Math.random() * 20, 40 + Math.random() * 30);
+    const to = polar(mouse, (i * 360) / burst + random(0, 20), random(40, 70));
 
     scene.spawn(
       circle({ x0: mouse.x - 3, x1: mouse.x + 3, y0: mouse.y - 3, y1: mouse.y + 3, z: 2, color: SPARK }),

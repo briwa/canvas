@@ -97,6 +97,20 @@ loop((t) => scene.render(t));
 | `value` | `number` | Number to limit. |
 | `min`, `max` | `number` | Bounds. |
 
+## random
+
+`random(min, max)` → `number`
+
+| parameter | type | description |
+| --- | --- | --- |
+| `min`, `max` | `number` | Range, from `min` up to but not including `max`. |
+
+## randomInt
+
+`randomInt(min, max)` → `number`
+
+`Math.floor(random(min, max))`: a whole number from `min` up to but not including `max`.
+
 ## spline
 
 `spline(values, t)` → `number`

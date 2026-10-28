@@ -8,7 +8,9 @@ import { linear, mix, polar, spline } from '../src/math';
 import { Scene } from '../src/scene';
 import { drawArea, drawPath, straight } from '../src/shapes';
 import {
+  cue,
   forever,
+  grow,
   move,
   moveTo,
   parallel,
@@ -258,6 +260,49 @@ describe('steps', () => {
       l.update(100);
 
       expect(cards.map((c) => c.x0)).toEqual([0, 10]);
+    });
+  });
+
+  describe('grow', () => {
+    it('grows each target out of its centre to the box it has when it starts', () => {
+      const e = rect({ x0: 0, x1: 40, y0: 10, y1: 30 });
+      const s = grow([e], { duration: 100, ease: linear });
+
+      s.begin(0);
+      s.update(0);
+      expect(e).toMatchObject({ x0: 20, x1: 20, y0: 20, y1: 20 });
+
+      s.update(50);
+      expect(e).toMatchObject({ x0: 10, x1: 30, y0: 15, y1: 25 });
+
+      s.update(100);
+      expect(e).toMatchObject({ x0: 0, x1: 40, y0: 10, y1: 30 });
+    });
+
+    it('works on the layer\'s targets, with a stagger', () => {
+      const cards = [rect({ x0: 0, x1: 10 }), rect({ x0: 20, x1: 30 })];
+      const l = layer(cards, grow({ duration: 100, stagger: 100, ease: linear }));
+
+      l.begin(0);
+      l.update(100);
+
+      expect(cards.map((c) => [c.x0, c.x1])).toEqual([[0, 10], [25, 25]]);
+    });
+  });
+
+  describe('cue', () => {
+    it('calls the function once as it begins, and ends straight away', () => {
+      const fn = vi.fn();
+      const s = sequence(wait(100), cue(fn), wait(100));
+
+      s.begin(0);
+      s.update(50);
+      expect(fn).not.toHaveBeenCalled();
+
+      s.update(100);
+      s.update(150);
+      expect(fn).toHaveBeenCalledTimes(1);
+      expect(cue(fn).span).toBe(0);
     });
   });
 
@@ -1110,6 +1155,20 @@ describe('math', () => {
     expect(peak(4)).toBeGreaterThan(peak(1.70158));
     expect(peak(0)).toBe(1);
     expect(math.easeOutBack(1, 4)).toBe(1);
+  });
+
+  it('picks a random number from min up to max', () => {
+    const spy = vi.spyOn(Math, 'random');
+
+    spy.mockReturnValue(0);
+    expect(math.random(2, 6)).toBe(2);
+    expect(math.randomInt(2, 6)).toBe(2);
+
+    spy.mockReturnValue(0.99);
+    expect(math.random(2, 6)).toBeCloseTo(5.96, 10);
+    expect(math.randomInt(2, 6)).toBe(5);
+
+    spy.mockRestore();
   });
 
   it('passes a spline through each value, spread evenly from 0 to 1', () => {

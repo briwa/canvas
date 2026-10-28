@@ -389,7 +389,7 @@ loop((t) => scene.render(t));
 A `machine` with keyboard input, spawned acorns and hit tests. Click the figure first. Walk with ← → or A / D, and hop with space, ↑ or W.
 
 ```js sandbox=canvas 640x300 code expand
-const { Scene, Entity, KeyboardInput, machine, rect, circle, step, forever, tween, move, wait, sequence, parallel, repeat, clamp, easeInOutSine, linear, mix } = Canvas;
+const { Scene, Entity, KeyboardInput, machine, rect, circle, step, forever, tween, move, wait, sequence, parallel, repeat, clamp, easeInOutSine, linear, mix, random } = Canvas;
 
 const HORIZON = 230;
 const JUMP = ['space', 'arrowup', 'w'];
@@ -500,7 +500,7 @@ const acorns = new Set();
 scene.add(sky).add([ground, canopy, label]).add(hero, brain);
 
 scene.every(drop, () => {
-  const x = 20 + Math.random() * (width - 40);
+  const x = random(20, width - 20);
 
   const acorn = circle({ x0: x - 6, x1: x + 6, y0: 14, y1: 28, color: { r: 120, g: 78, b: 42 } });
 

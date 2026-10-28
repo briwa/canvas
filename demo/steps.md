@@ -143,6 +143,21 @@ A `tween` that moves `(x0, y0)` to a point, keeping the box's size.
 | --- | --- |
 | `Step` | Lasts `duration + stagger` ms. |
 
+## grow
+
+`grow(targets?, options?)` → `Step`
+
+A `tween` that grows the box out of its centre to the size it has when the step begins.
+
+| parameter | type | default | description |
+| --- | --- | --- | --- |
+| `targets` | `Entity \| Entity[]` | layer's shapes | Shapes to grow. |
+| `options` | `object` | `{}` | Same as `tween`, without `from`. |
+
+| returns | |
+| --- | --- |
+| `Step` | Lasts `duration + stagger` ms. |
+
 ## sequence
 
 `sequence(...steps)` → `Step`
@@ -215,6 +230,18 @@ loop((t) => scene.render(t));
 | returns | |
 | --- | --- |
 | `Step` | Finishes after `duration`. |
+
+## cue
+
+`cue(fn)` → `Step`
+
+| parameter | type | description |
+| --- | --- | --- |
+| `fn` | `(s) => void` | Called once as the step begins. |
+
+| returns | |
+| --- | --- |
+| `Step` | Finishes straight away. |
 
 ## until
 
