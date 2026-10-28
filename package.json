@@ -47,7 +47,7 @@
     "format:demos:check": "node demo/format.js --check"
   },
   "devDependencies": {
-    "@briwa.dev/sandbox": "^0.12.1",
+    "@briwa.dev/sandbox": "^0.12.2",
     "@lezer/highlight": "^1.2.5",
     "@lezer/javascript": "^1.5.6",
     "prettier": "^3.9.10",
