@@ -39,6 +39,7 @@ Keeps time, runs steps, and draws shapes.
 | `onUpdate(fn)` | `() => void` | Calls `fn(scene)` each frame after the steps. Returns an unsubscribe function. |
 | `onFinish(fn)` | `() => void` | Calls `fn(scene)` each time the scene finishes. Returns an unsubscribe function. |
 | `render(time)` | `this` | Moves to `time` (ms) and draws. |
+| `seek(ms, interval?)` | `this` | Runs the clock `ms` ahead in `interval` steps (default `16`), firing everything met along the way. Doesn't draw. |
 | `pause()` / `play()` | `this` | Stops or resumes the clock. |
 | `reset()` | `this` | Goes back to the first frame, removing anything added since. |
 | `destroy()` | `this` | Detaches inputs and stops every step. |
@@ -89,6 +90,8 @@ const pause = button('pause', () => {
 
 button('reset', () => scene.reset());
 
+button('skip 1s', () => scene.seek(1000));
+
 const looping = button('loop: on', () => {
   scene.loop = !scene.loop;
   looping.textContent = scene.loop ? 'loop: on' : 'loop: off';
@@ -107,7 +110,7 @@ scene.onFinish(() => {
 loop((t) => scene.render(t));
 ```
 
-Stars `spawn` on their own; click to throw sparks.
+Stars `spawn` on their own; click to throw sparks. `seek` starts the sky mid-shower.
 
 ```js sandbox=canvas 640x300 code expand
 const {
@@ -227,6 +230,8 @@ scene.onUpdate(() => {
     );
   }
 });
+
+scene.seek(3000);
 
 loop((t) => scene.render(t));
 onCleanup(() => scene.destroy());

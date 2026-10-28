@@ -410,7 +410,12 @@ describe('scene', () => {
     const start = () => {
       const fig = open('scene.md', 'Scene');
       const button = (text) => fig.elements.find((el) => el.textContent === text);
-      const controls = { pause: button('pause'), reset: button('reset'), loop: button('loop: on') };
+      const controls = {
+        pause: button('pause'),
+        reset: button('reset'),
+        skip: button('skip 1s'),
+        loop: button('loop: on'),
+      };
       const finished = fig.elements.find((el) => el.tagName === 'SPAN');
 
       return { fig, controls, finished };
@@ -425,6 +430,7 @@ describe('scene', () => {
       expect(fig.root.children[1].children.map((el) => el.textContent)).toEqual([
         'pause',
         'reset',
+        'skip 1s',
         'loop: on',
         'finished: 0',
       ]);
@@ -478,6 +484,17 @@ describe('scene', () => {
       expect(finished.textContent).toBe('finished: 0');
     });
 
+    it('skips a second ahead from its own button', () => {
+      const { fig, controls } = start();
+      const plain = play(start().fig, { to: 1220 });
+      const trace = play(fig, {
+        to: 220,
+        onFrame: script({ 200: () => controls.skip.click() }),
+      });
+
+      expect(ball(at(trace, 220)).x0).toBeCloseTo(ball(at(plain, 1220)).x0, 0);
+    });
+
     it('stays at the end with looping off, and loops again once it is back on', () => {
       const { fig, controls, finished } = start();
       const trace = play(fig, {
@@ -512,15 +529,15 @@ describe('dynamic', () => {
       fig.canvas.fire('pointerup', { clientX: x, clientY: y });
     };
 
-    it('drops stars behind the hills, and removes them once they fade', () => {
+    it('opens mid-shower, drops stars behind the hills, and removes them once they fade', () => {
       const fig = start();
       const trace = play(fig, { to: 6000 });
       const stars = (t) => find(at(trace, t), STAR);
       const hill = (t) => at(trace, t).findIndex((op) => op.includes('rgb(26 32 50)'));
 
-      expect(stars(0)).toHaveLength(0);
-      expect(stars(240)).toHaveLength(1);
-      expect(at(trace, 240).indexOf(stars(240)[0])).toBeLessThan(hill(240));
+      expect(stars(0).length).toBeGreaterThan(4);
+      expect(stars(0).length).toBeLessThan(9);
+      expect(at(trace, 0).indexOf(stars(0).at(-1))).toBeLessThan(hill(0));
       expect(stars(3000).length).toBeGreaterThan(4);
       expect(stars(3000).length).toBeLessThan(9);
       expect(meter(at(trace, 3000)).x1).toBe(16 + stars(3000).length * 6);
